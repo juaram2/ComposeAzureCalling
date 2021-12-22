@@ -4,11 +4,11 @@ import CloudHospitalApi.apis.CommunicationsApi
 import CloudHospitalApi.infrastructure.Serializer
 import android.util.Log
 import com.azure.android.communication.common.CommunicationTokenCredential
-import com.cloudhospital.model.exception.RestException
-import com.google.gson.annotations.JsonAdapter
-import com.squareup.moshi.JsonAdapter
-import kotlinx.coroutines.*
-import timber.log.Timber
+import com.example.composeazurecalling.model.RestException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
 
 interface TokenListener {
@@ -35,7 +35,7 @@ class TokenService {
                         tokenCompletableFuture.complete(it.token)
                     }
                 } else {
-                    val jsonAdapter: JsonAdapter<RestException> = Serializer.moshi.adapter(
+                    val jsonAdapter = Serializer.moshi.adapter(
                         RestException::class.java
                     )
                     val restException: RestException? = jsonAdapter.lenient().fromJson(

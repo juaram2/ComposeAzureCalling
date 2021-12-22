@@ -1,20 +1,22 @@
 package com.example.composeazurecalling.utils
 
+import com.example.composeazurecalling.BuildConfig
+
 class Constants {
     companion object {
-//        var clientId_dev = "com.cloudhospital.int"
-//        var clientId_stg = "com.cloudhospital.stg"
-//        var clientId_prd = "com.cloudhospital.app"
-//
-//        var clientSecret = "CloudHospitalSecret"
-//        var api_dev = "https://api-int.icloudhospital.com"
-//        var api_stg = "https://api-stg.icloudhospital.com"
-//        var api_prd = "https://api.icloudhospital.com"
-//
-//        var identity_dev = "https://identity-int.icloudhospital.com"
-//        var identity_stg = "https://identity-stg.icloudhospital.com"
-//        var identity_prd = "https://identity.icloudhospital.com"
-//
+        var clientId_dev = "com.cloudhospital.int"
+        var clientId_stg = "com.cloudhospital.stg"
+        var clientId_prd = "com.cloudhospital.app"
+
+        var clientSecret = "CloudHospitalSecret"
+        var api_dev = "https://api-int.icloudhospital.com"
+        var api_stg = "https://api-stg.icloudhospital.com"
+        var api_prd = "https://api.icloudhospital.com"
+
+        var identity_dev = "https://identity-int.icloudhospital.com"
+        var identity_stg = "https://identity-stg.icloudhospital.com"
+        var identity_prd = "https://identity.icloudhospital.com"
+
 //        var scope = "openid email profile roles CloudHospital_api IdentityServerApi offline_access"
 //
 //        var sendBirdAppId_dev = "D39AC198-F710-498F-8D68-46793C09293E"
@@ -39,34 +41,34 @@ class Constants {
 //        var appCenter_dev = "14848225-386e-4791-86b0-8ace6fc8829b"
 //        var appCenter_stg = ""
 //        var appCenter_prd = "3f11e027-aa2a-4a2b-93d6-cc1a612e07fd"
-//
-//        fun identityServer():String {
-//            when (BuildConfig.FLAVOR) {
-//                "dev" -> return identity_dev
-//                "stg" -> return identity_stg
-//                "prd" -> return identity_prd
-//            }
-//            return identity_dev
-//        }
-//
-//        fun apiServer():String {
-//            when (BuildConfig.FLAVOR) {
-//                "dev" -> return api_dev
-//                "stg" -> return api_stg
-//                "prd" -> return api_prd
-//            }
-//            return api_dev
-//        }
-//
-//        fun clientId():String {
-//            when (BuildConfig.FLAVOR) {
-//                "dev" -> return clientId_dev
-//                "stg" -> return clientId_stg
-//                "prd" -> return clientId_prd
-//            }
-//            return clientId_dev
-//        }
-//
+
+        fun identityServer():String {
+            when (BuildConfig.FLAVOR) {
+                "dev" -> return identity_dev
+                "stg" -> return identity_stg
+                "prd" -> return identity_prd
+            }
+            return identity_dev
+        }
+
+        fun apiServer():String {
+            when (BuildConfig.FLAVOR) {
+                "dev" -> return api_dev
+                "stg" -> return api_stg
+                "prd" -> return api_prd
+            }
+            return api_dev
+        }
+
+        fun clientId():String {
+            when (BuildConfig.FLAVOR) {
+                "dev" -> return clientId_dev
+                "stg" -> return clientId_stg
+                "prd" -> return clientId_prd
+            }
+            return clientId_dev
+        }
+
 //        fun getSendBirdAppId(): String {
 //            when (BuildConfig.FLAVOR) {
 //                "dev" -> return sendBirdAppId_dev

@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -16,6 +18,18 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
+        }
+    }
+
+    flavorDimensions "stage"
+    productFlavors {
+        dev {
+            dimension "stage"
+            applicationIdSuffix ".int"
+        }
+        prd {
+            dimension "stage"
+            applicationIdSuffix ".app"
         }
     }
 
@@ -35,10 +49,11 @@ android {
     }
     buildFeatures {
         compose true
+        dataBinding true
     }
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
-        kotlinCompilerVersion '1.5.21'
+//        kotlinCompilerVersion '1.5.21'
     }
     packagingOptions {
         resources {
@@ -57,9 +72,32 @@ dependencies {
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
     implementation 'androidx.activity:activity-compose:1.4.0'
+
+    // lifecycle
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0"
+
+    // Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:2.3.3"
+    implementation "androidx.navigation:navigation-ui-ktx:2.3.3"
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:2.3.3"
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.31"
+
+    // auzre_communications
+    implementation "com.azure.android:azure-communication-calling:1.1.0"
+
+    // CH-API-CLIENT
+    implementation "com.github.icloudhospital:ch-api-client-kotlin:1.4.5"
+
+    // Encrypt token
+    implementation "com.pddstudio:encrypted-preferences:1.3.0"
+
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+
 }
