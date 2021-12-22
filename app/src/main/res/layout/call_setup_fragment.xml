@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <data>
+    <variable name="communicationCallingViewModel" type="com.cloudhospital.viewmodel.communications.calling.CommunicationCallingViewModel" />
+    <variable name="callSetupViewModel" type="com.cloudhospital.ui.fragment.call.CallSetupViewModel" />
+    <import type="android.view.View"/>
+  </data>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/setup_video_layout"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:layout_marginTop="16dp"
+      android:layout_marginBottom="30dp"
+      android:background="@color/DimGray"
+      app:layout_constraintBottom_toTopOf="@+id/setup_name_holder"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent">
+
+
+
+      <ImageView
+        android:id="@+id/default_avatar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="@{callSetupViewModel.isVideoChecked() ? View.GONE : View.VISIBLE}"
+        android:src="@drawable/ic_no_camera_50_64"
+        />
+
+      <ProgressBar
+        android:id="@+id/setup_progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="@{communicationCallingViewModel.isSetup() ? View.GONE : View.VISIBLE}"/>
+
+      <LinearLayout
+        android:id="@+id/setup_video_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/setup_video_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ToggleButton
+          android:id="@+id/setup_video"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_marginStart="15dp"
+          android:layout_marginEnd="15dp"
+          android:background="@android:color/transparent"
+          android:checked="@={callSetupViewModel.isVideoChecked}"
+          android:drawableTop="@drawable/toggle_selector_camera"
+          android:drawablePadding="5dp"
+          android:textColor="#FFFFFF"
+          android:textOff="@string/setup_video_off"
+          android:textOn="@string/setup_video_on"
+          />
+
+        <ToggleButton
+          android:id="@+id/setup_audio"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_marginStart="15dp"
+          android:layout_marginEnd="15dp"
+          android:background="@android:color/transparent"
+          android:checked="@={callSetupViewModel.isMicChecked}"
+          android:drawableTop="@drawable/toggle_selector_mic"
+          android:drawablePadding="5dp"
+          android:drawableTint="@android:color/white"
+          android:textColor="#FFFFFF"
+          android:textOff="@string/setup_mic_off"
+          android:textOn="@string/setup_mic_on"
+          />
+
+        <ToggleButton
+          android:id="@+id/device"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_marginStart="15dp"
+          android:layout_marginEnd="15dp"
+          android:background="@android:color/transparent"
+          android:checked="@={callSetupViewModel.isDeviceChecked}"
+          android:drawableTop="@drawable/ic_fluent_speaker_2_28_filled"
+          android:drawablePadding="5dp"
+          android:drawableTint="@android:color/white"
+          android:textColor="#FFFFFF"
+          android:focusableInTouchMode="true"
+          android:textOn="@string/setup_device"
+          android:textOff="@string/setup_device"
+          />
+
+      </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+      android:id="@+id/setup_name_holder"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="15dp"
+      app:layout_constraintBottom_toTopOf="@+id/start_call"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      android:orientation="vertical">
+
+      <TextView
+        android:id="@+id/setup_enter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_enter" />
+
+      <EditText
+        android:id="@+id/setup_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="Enter name"
+        android:ems="10"
+        android:text="@={callSetupViewModel.displayName}"
+        android:hint="@string/setup_name_hint"
+        android:inputType="textCapSentences"
+        android:singleLine="true"/>
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/start_call"
+      android:layout_width="0dp"
+      android:layout_height="48dp"
+      android:layout_marginBottom="13dp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent">
+
+      <Button
+        android:id="@+id/setup_button"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="@{callSetupViewModel.isValid()}"
+        android:enabled="@{callSetupViewModel.isValid()}"
+        android:background="@{callSetupViewModel.isValid() ? @drawable/btn_rounded_blue : @drawable/btn_rounded_grey}"
+        android:onClick="@{() -> callSetupViewModel.startCall()}"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/setup_start_call"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
