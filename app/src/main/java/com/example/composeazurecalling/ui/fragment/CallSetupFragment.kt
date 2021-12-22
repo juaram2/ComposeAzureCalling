@@ -13,10 +13,10 @@ import com.azure.android.communication.calling.CreateViewOptions
 import com.azure.android.communication.calling.ScalingMode
 import com.azure.android.communication.calling.VideoStreamRenderer
 import com.azure.android.communication.calling.VideoStreamRendererView
-import com.cloudhospital.databinding.CallSetupFragmentBinding
-import com.cloudhospital.model.calling.JoinCallConfig
-import com.cloudhospital.ui.fragment.call.CallSetupViewModel
-import com.cloudhospital.utils.ifLet
+import com.example.composeazurecalling.databinding.CallSetupFragmentBinding
+import com.example.composeazurecalling.model.JoinCallConfig
+import com.example.composeazurecalling.utils.ifLet
+import com.example.composeazurecalling.viewmodel.CallSetupViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 
 class CallSetupFragment : Fragment() {
@@ -28,7 +28,6 @@ class CallSetupFragment : Fragment() {
     private var rendererView: VideoStreamRenderer? = null
     private var previewVideo: VideoStreamRendererView? = null
 
-//    private val authorizationViewModel by activityViewModels<AuthorizationViewModel>()
     private val communicationCallingViewModel by activityViewModels<CommunicationCallingViewModel>()
 
     private lateinit var callSetupViewModel: CallSetupViewModel
@@ -49,8 +48,8 @@ class CallSetupFragment : Fragment() {
 
         val navController = this.findNavController()
 
-        val callType = CallSetupFragmentArgs.fromBundle(requireArguments()).CallType
-        val joinId = CallSetupFragmentArgs.fromBundle(requireArguments()).JoinId
+//        val callType = CallSetupFragmentArgs.fromBundle(requireArguments()).CallType
+//        val joinId = CallSetupFragmentArgs.fromBundle(requireArguments()).JoinId
 
         callSetupViewModel.isVideoChecked.observe(viewLifecycleOwner, { isVideoChecked ->
             Log.d("debug", "isVideoChecked: $isVideoChecked")
@@ -77,14 +76,13 @@ class CallSetupFragment : Fragment() {
                     callSetupViewModel.isMicChecked.value,
                     callSetupViewModel.isVideoChecked.value
                 ) { (isMicChecked, isVideoChecked) ->
-                    val joinCallConfig = JoinCallConfig(joinId, isMicChecked == false, isVideoChecked == true,
-                        callSetupViewModel.displayName.value as String, callType)
+//                    val joinCallConfig = JoinCallConfig(joinId, isMicChecked == false, isVideoChecked == true,
+//                        callSetupViewModel.displayName.value as String, callType)
 
-                    navController.navigate(
-                        CallSetupFragmentDirections.actionCallSetupFragmentToGroupCallFragment(joinCallConfig)
-                    )
+//                    navController.navigate(
+//                        CallSetupFragmentDirections.actionCallSetupFragmentToGroupCallFragment(joinCallConfig)
+//                    )
                 }
-
             }
         })
 
@@ -94,13 +92,6 @@ class CallSetupFragment : Fragment() {
 
         return binding.root
     }
-
-//    private fun initializeSpeaker() {
-//        CloudHospitalApp.instance?.createAudioSessionManager()
-//        audioSessionManager = CloudHospitalApp.instance?.getAudioSessionManager()
-//        // By default, turn on the speaker
-//        audioSessionManager.switchAudioDeviceType(AudioDeviceType.SPEAKER)
-//    }
 
     override fun onStop() {
         super.onStop()

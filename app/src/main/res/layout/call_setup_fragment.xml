@@ -5,8 +5,8 @@
   xmlns:tools="http://schemas.android.com/tools">
 
   <data>
-    <variable name="communicationCallingViewModel" type="com.cloudhospital.viewmodel.communications.calling.CommunicationCallingViewModel" />
-    <variable name="callSetupViewModel" type="com.cloudhospital.ui.fragment.call.CallSetupViewModel" />
+    <variable name="communicationCallingViewModel" type="com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel" />
+    <variable name="callSetupViewModel" type="com.example.composeazurecalling.viewmodel.CallSetupViewModel" />
     <import type="android.view.View"/>
   </data>
 
@@ -22,7 +22,7 @@
       android:layout_height="0dp"
       android:layout_marginTop="16dp"
       android:layout_marginBottom="30dp"
-      android:background="@color/DimGray"
+      android:background="@color/grey_400"
       app:layout_constraintBottom_toTopOf="@+id/setup_name_holder"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
@@ -75,8 +75,8 @@
           android:drawableTop="@drawable/toggle_selector_camera"
           android:drawablePadding="5dp"
           android:textColor="#FFFFFF"
-          android:textOff="@string/setup_video_off"
-          android:textOn="@string/setup_video_on"
+          android:textOff="Video off"
+          android:textOn="Video on"
           />
 
         <ToggleButton
@@ -91,8 +91,8 @@
           android:drawablePadding="5dp"
           android:drawableTint="@android:color/white"
           android:textColor="#FFFFFF"
-          android:textOff="@string/setup_mic_off"
-          android:textOn="@string/setup_mic_on"
+          android:textOff="Mic off"
+          android:textOn="Mic on"
           />
 
         <ToggleButton
@@ -108,8 +108,8 @@
           android:drawableTint="@android:color/white"
           android:textColor="#FFFFFF"
           android:focusableInTouchMode="true"
-          android:textOn="@string/setup_device"
-          android:textOff="@string/setup_device"
+          android:textOn="Volume on"
+          android:textOff="Volume off"
           />
 
       </LinearLayout>
@@ -130,7 +130,7 @@
         android:id="@+id/setup_enter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/setup_enter" />
+        android:text="Enter" />
 
       <EditText
         android:id="@+id/setup_name"
@@ -139,7 +139,7 @@
         android:autofillHints="Enter name"
         android:ems="10"
         android:text="@={callSetupViewModel.displayName}"
-        android:hint="@string/setup_name_hint"
+        android:hint="Display name"
         android:inputType="textCapSentences"
         android:singleLine="true"/>
 
@@ -163,7 +163,7 @@
         android:background="@{callSetupViewModel.isValid() ? @drawable/btn_rounded_blue : @drawable/btn_rounded_grey}"
         android:onClick="@{() -> callSetupViewModel.startCall()}"
         android:fontFamily="sans-serif-medium"
-        android:text="@string/setup_start_call"
+        android:text="Start call"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
