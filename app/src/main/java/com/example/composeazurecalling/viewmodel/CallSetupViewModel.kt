@@ -1,11 +1,11 @@
-package com.cloudhospital.ui.fragment.call
+package com.example.composeazurecalling.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.cloudhospital.viewmodel.BaseViewModel
+import androidx.lifecycle.ViewModel
 
-class CallSetupViewModel(application: Application) : BaseViewModel(application) {
+class CallSetupViewModel(application: Application) : ViewModel() {
 
     //region callSetup properties
     val isVideoChecked = MutableLiveData<Boolean>(false)

@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
 
 interface TokenListener {
-    fun onTokenRetreived(communicationTokenCredential: CommunicationTokenCredential)
+    fun onTokenRetrieved(communicationTokenCredential: CommunicationTokenCredential)
 }
 
 class TokenService {

@@ -263,7 +263,7 @@ class GroupCallFragment : Fragment() {
                     val now = System.currentTimeMillis()
                     val timeElapsed: Long = now - lastViewUpdateTimestamp
                     handler.postDelayed({
-                        groupCallViewModel.setConfigureChaned(true)
+                        groupCallViewModel.setConfigureChanged(true)
                         setParticipantCountToFloatingHeader(communicationCallingViewModel.getRemoteParticipantCount())
                         lastViewUpdateTimestamp = System.currentTimeMillis()
                         viewUpdatePending = false
@@ -287,7 +287,7 @@ class GroupCallFragment : Fragment() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig!!)
-        groupCallViewModel.setConfigureChaned(true)
+        groupCallViewModel.setConfigureChanged(true)
     }
 
     private fun setStatusBarVisibility() {
