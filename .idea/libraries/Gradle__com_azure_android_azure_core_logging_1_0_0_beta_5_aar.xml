@@ -1,0 +1,26 @@
+<component name="libraryTable">
+  <library name="Gradle: com.azure.android:azure-core-logging:1.0.0-beta.5@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/1ee22bb08a18aca8601905c181617a7e/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/81fa3c2dab7bb00e86a01f5281950df6/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/9ccfcc2d9fe96ce420cead2ea24e920e/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/96715ec6f2cca80b0710129e44f3a002/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/20b7bb3b9a053dd1a43d05344c8caafc/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/2ff075d0e0b22331eeea6dc8dbcb0980/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/2f4459ea731ed05677401de160db956e/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/381fbbcff3003c992797bc93bb80851c/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/57348ff67097928a5b20dc2ebbd005f4/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/3b1c3ef824ef606c995ec6e160d63ac4/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/598356a939c7aa24e9483a07562b29bd/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/c656b5ccb419920fc0ca8a75f1fbdc59/transformed/jetified-azure-core-logging-1.0.0-beta.5/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/2f4459ea731ed05677401de160db956e/transformed/jetified-azure-core-logging-1.0.0-beta.5/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/2f4459ea731ed05677401de160db956e/transformed/jetified-azure-core-logging-1.0.0-beta.5/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.azure.android/azure-core-logging/1.0.0-beta.5/3be8d129036d6ba3ee4e1874dbcb3cd4e5e9cfa8/azure-core-logging-1.0.0-beta.5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.azure.android/azure-core-logging/1.0.0-beta.5/39082c0902da5b4b28a83f7064ce6b2625cdd077/azure-core-logging-1.0.0-beta.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

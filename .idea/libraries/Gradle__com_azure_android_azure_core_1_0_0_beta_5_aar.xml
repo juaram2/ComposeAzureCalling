@@ -1,0 +1,26 @@
+<component name="libraryTable">
+  <library name="Gradle: com.azure.android:azure-core:1.0.0-beta.5@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/31f89d4c3d5283c4b5061d6b64c70adb/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/5ba036de886926f424fcda6bfbb844d0/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/1c829e085969a9ae204062c7a76fa566/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/ee347cb37537c2ad748c48a129ac7941/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/9baf8d9dad6879bfbdb4d68c488d6517/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/8456a890abd0abd05f441c1c17596dde/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/3e3fe8d3a46fd416e3a417e790aacc9e/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/1c8ab4680cce19687a902030836a2365/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/2e2a5570d145cce86ba6174c87787569/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/447c3d24c054acd268156b64f666dea9/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/f653edd22611b2fab6370593c8347a6b/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/243784b98c4ace9f8f7d400eeb224b95/transformed/jetified-azure-core-1.0.0-beta.5/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/3e3fe8d3a46fd416e3a417e790aacc9e/transformed/jetified-azure-core-1.0.0-beta.5/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/3e3fe8d3a46fd416e3a417e790aacc9e/transformed/jetified-azure-core-1.0.0-beta.5/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.azure.android/azure-core/1.0.0-beta.5/f1afe72e8b0198d3ae251c7c2a47c0bc2c49b168/azure-core-1.0.0-beta.5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.azure.android/azure-core/1.0.0-beta.5/fc7feed16815f4dced1d6ddb166558ae0bcb35d0/azure-core-1.0.0-beta.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
