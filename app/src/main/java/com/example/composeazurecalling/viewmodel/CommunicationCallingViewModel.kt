@@ -1,6 +1,7 @@
 package com.example.composeazurecalling.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -72,7 +73,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
     //endregion
 
     //region Public Methods
-    fun setupCalling() {
+    fun setupCalling(applicationContext: Context) {
         _callClient = CallClient()
         setupDeviceManager()
     }

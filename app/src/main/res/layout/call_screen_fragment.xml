@@ -5,13 +5,13 @@
   xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <data>
-    <variable name="groupCallViewModel" type="com.example.composeazurecalling.viewmodel.GroupCallViewModel" />
+    <variable name="groupCallViewModel" type="com.example.composeazurecalling.viewmodel.CallScreenViewModel" />
   </data>
 
   <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.fragment.call.GroupCallFragment">
+    tools:context=".ui.fragment.CallScreenFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
       android:id="@+id/previewHolder"

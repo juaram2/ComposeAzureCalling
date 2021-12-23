@@ -14,21 +14,19 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.azure.android.communication.calling.*
-import com.example.composeazurecalling.databinding.GroupCallFragmentBinding
+import com.example.composeazurecalling.databinding.CallScreenFragmentBinding
 import com.example.composeazurecalling.model.JoinCallConfig
+import com.example.composeazurecalling.viewmodel.CallScreenViewModel
 import com.example.composeazurecalling.ui.view.ParticipantView
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
-import com.example.composeazurecalling.viewmodel.GroupCallViewModel
 import java.util.*
 
-class GroupCallFragment : Fragment() {
+class CallScreenFragment : Fragment() {
 
-    //private val callingManager by activityViewModels<CallingManager>()
     private val communicationCallingViewModel by activityViewModels<CommunicationCallingViewModel>() //communicationCallingViewModel
 
-    private lateinit var groupCallViewModel : GroupCallViewModel
+    private lateinit var groupCallViewModel : CallScreenViewModel
 
     private lateinit var joinCallConfig: JoinCallConfig
     private val MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES = 2500
@@ -56,8 +54,13 @@ class GroupCallFragment : Fragment() {
     private var participantCountTextView: TextView? = null
 
     companion object {
-        fun newInstance() = GroupCallFragment()
-        private val LOG_TAG: String = GroupCallFragment::class.java.simpleName
+        fun newInstance() = CallScreenFragment()
+        private val LOG_TAG: String = CallScreenFragment::class.java.simpleName
+
+        private var joinCallConfig: JoinCallConfig? = null
+        fun setJoinCallConfig(config: JoinCallConfig) {
+            joinCallConfig = config
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,10 +79,10 @@ class GroupCallFragment : Fragment() {
         // if the app is already in landscape mode, this check will hide status bar
         setStatusBarVisibility()
 
-        var binding = GroupCallFragmentBinding.inflate(inflater, container, false)
+        var binding = CallScreenFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
 
-        groupCallViewModel = ViewModelProvider(this).get(GroupCallViewModel::class.java)
+        groupCallViewModel = ViewModelProvider(this).get(CallScreenViewModel::class.java)
         binding.groupCallViewModel = groupCallViewModel
 
         binding.callVideo.isEnabled = false
@@ -193,7 +196,7 @@ class GroupCallFragment : Fragment() {
         }
 
         communicationCallingViewModel.callState.observe(viewLifecycleOwner, { callState ->
-            Log.d(LOG_TAG, "callState : ${callState}")
+            Log.d(LOG_TAG, "callState : $callState")
             if (callState == CallState.CONNECTED) {
                 binding.callAudio.isEnabled = true
                 binding.callVideo.isEnabled = true
@@ -205,7 +208,7 @@ class GroupCallFragment : Fragment() {
 
         communicationCallingViewModel.cameraOn.observe(viewLifecycleOwner, {
             if(it != null) {
-                Log.d(LOG_TAG, "cameraOn : ${it}")
+                Log.d(LOG_TAG, "cameraOn : $it")
                 if(it) {
                     localParticipantView.setVideoStream(communicationCallingViewModel.getLocalVideoStream())
                     localParticipantView.setVideoDisplayed(it)
@@ -286,7 +289,7 @@ class GroupCallFragment : Fragment() {
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig!!)
+        super.onConfigurationChanged(newConfig)
         groupCallViewModel.setConfigureChanged(true)
     }
 
@@ -327,17 +330,16 @@ class GroupCallFragment : Fragment() {
     override fun onDestroy() {
         Log.d(LOG_TAG, "onDestroy")
         communicationCallingViewModel.displayedParticipantsLiveData.removeObservers(this)
-        if (localParticipantView != null) {
-            localParticipantView.cleanUpVideoRendering()
-            detachFromParentView(localParticipantView)
-        }
+        localParticipantView.cleanUpVideoRendering()
+        detachFromParentView(localParticipantView)
         super.onDestroy()
     }
 
     private fun initializeCallNotification() {
-        activity?.let{
-            inCallServiceIntent = Intent(it, InCallService::class.java)
-            it.startService(inCallServiceIntent)
+        activity?.let {
+            Log.d("debug", "initializeCallNotification")
+//            inCallServiceIntent = Intent(it, InCallService::class.java)
+//            it.startService(inCallServiceIntent)
         }
     }
 
@@ -468,7 +470,7 @@ class GroupCallFragment : Fragment() {
         callHangupConfirmButton.isEnabled = false
         communicationCallingViewModel.hangupAsync()
 
-        findNavController().popBackStack()
+//        findNavController().popBackStack()
     }
 
     private fun detachFromParentView(view: View?) {
@@ -571,4 +573,5 @@ class GroupCallFragment : Fragment() {
         }
         return null
     }
+
 }
