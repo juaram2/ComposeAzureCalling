@@ -15,18 +15,16 @@ class CallScreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.call_screen_activity)
+        val joinCallConfig = intent.getSerializableExtra("joinCallConfig") as JoinCallConfig
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.container, CallScreenFragment.newInstance())
+                .replace(R.id.container, CallScreenFragment.newInstance(joinCallConfig))
                 .commitNow()
         }
 
-        val joinCallConfig = intent.getSerializableExtra("joinCallConfig") as JoinCallConfig
-        CallScreenFragment.setJoinCallConfig(joinCallConfig)
-
         groupCallVM.configureChanged.observe(this, {
             Log.d("debug", "configureChanged : $it")
-
         })
     }
 }

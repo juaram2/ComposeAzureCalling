@@ -28,7 +28,7 @@ class CallScreenFragment : Fragment() {
 
     private lateinit var groupCallViewModel : CallScreenViewModel
 
-    private lateinit var joinCallConfig: JoinCallConfig
+    private var joinCallConfig: JoinCallConfig? = null
     private val MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES = 2500
     private val handler = Handler(Looper.getMainLooper())
     private var inCallServiceIntent: Intent? = null
@@ -54,13 +54,12 @@ class CallScreenFragment : Fragment() {
     private var participantCountTextView: TextView? = null
 
     companion object {
-        fun newInstance() = CallScreenFragment()
-        private val LOG_TAG: String = CallScreenFragment::class.java.simpleName
-
-        private var joinCallConfig: JoinCallConfig? = null
-        fun setJoinCallConfig(config: JoinCallConfig) {
-            joinCallConfig = config
+        fun newInstance(joinCallConfig: JoinCallConfig) = CallScreenFragment().apply {
+            arguments = Bundle().apply {
+                putSerializable("joinCallConfig", joinCallConfig)
+            }
         }
+        private val LOG_TAG: String = CallScreenFragment::class.java.simpleName
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +70,11 @@ class CallScreenFragment : Fragment() {
             actionBar?.hide()
             it.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             localParticipantView = ParticipantView(it)
+
+            arguments?.let { arg ->
+                joinCallConfig = arg.getSerializable("joinCallConfig") as JoinCallConfig
+                Log.d("debug", "joinCallConfig : ${joinCallConfig!!.joinId}")
+            }
         }
     }
 
@@ -106,9 +110,9 @@ class CallScreenFragment : Fragment() {
         binding.callVideo.setOnClickListener {
             communicationCallingViewModel.cameraOn.value?.let{
                 if(!it) {
-                    communicationCallingViewModel.turnOnVideoAsync()
+                    communicationCallingViewModel.turnOnVideoAsync(this.requireContext())
                 } else {
-                    communicationCallingViewModel.turnOffVideoAsync()
+                    communicationCallingViewModel.turnOffVideoAsync(this.requireContext())
                 }
             }
         }
@@ -116,9 +120,9 @@ class CallScreenFragment : Fragment() {
         binding.callAudio.setOnClickListener {
             communicationCallingViewModel.micOn.value?.let {
                 if(!it) {
-                    communicationCallingViewModel.turnOnAudioAsync()
+                    communicationCallingViewModel.turnOnAudioAsync(this.requireContext())
                 } else {
-                    communicationCallingViewModel.turnOffAudioAsync()
+                    communicationCallingViewModel.turnOffAudioAsync(this.requireContext())
                 }
             }
         }
@@ -210,7 +214,7 @@ class CallScreenFragment : Fragment() {
             if(it != null) {
                 Log.d(LOG_TAG, "cameraOn : $it")
                 if(it) {
-                    localParticipantView.setVideoStream(communicationCallingViewModel.getLocalVideoStream())
+                    localParticipantView.setVideoStream(communicationCallingViewModel.getLocalVideoStream(this.requireContext()))
                     localParticipantView.setVideoDisplayed(it)
                     binding.yourCameraHolder.visibility = if (localParticipantViewGridIndex == null && !it) View.INVISIBLE else View.VISIBLE
                     videoImageButton.isSelected = true
@@ -276,16 +280,12 @@ class CallScreenFragment : Fragment() {
             })
         }
 
-        return binding.root
-    }
+        joinCallConfig?.let {
+            setLayoutComponentState(it.isMicrophoneMuted, it.isCameraOn, this.callHangUpOverlaid)
+            communicationCallingViewModel.joinCall(it, this.requireContext())
+        }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        /* get Join Call Config */
-        Log.d(LOG_TAG, "onViewCreated")
-//        joinCallConfig = GroupCallFragmentArgs.fromBundle(requireArguments()).jOINCALLCONFIG
-        setLayoutComponentState(joinCallConfig.isMicrophoneMuted, joinCallConfig.isCameraOn, this.callHangUpOverlaid)
-        communicationCallingViewModel.joinCall(joinCallConfig)
+        return binding.root
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -316,13 +316,13 @@ class CallScreenFragment : Fragment() {
 
     override fun onStop() {
         Log.d(LOG_TAG, "onStop")
-        communicationCallingViewModel.pauseVideo()
+        communicationCallingViewModel.pauseVideo(this.requireContext())
         super.onStop()
     }
 
     override fun onResume() {
         Log.d(LOG_TAG, "onResume")
-        communicationCallingViewModel.resumeVideo()
+        communicationCallingViewModel.resumeVideo(this.requireContext())
         super.onResume()
     }
 
@@ -345,11 +345,11 @@ class CallScreenFragment : Fragment() {
 
     private fun initParticipantViews() {
         // load local participant's view
-        localParticipantView.setDisplayName(joinCallConfig.displayName + " (Me)")
-        localParticipantView.setIsMuted(joinCallConfig.isMicrophoneMuted)
-        localParticipantView.setVideoDisplayed(joinCallConfig.isCameraOn)
+        localParticipantView.setDisplayName((joinCallConfig?.displayName ?: "Aram") + " (Me)")
+        localParticipantView.setIsMuted(joinCallConfig?.isMicrophoneMuted ?: false)
+        localParticipantView.setVideoDisplayed(joinCallConfig?.isCameraOn ?: false)
 
-        val localVideoStream = communicationCallingViewModel.getLocalVideoStream()
+        val localVideoStream = communicationCallingViewModel.getLocalVideoStream(this.requireContext())
         localParticipantView.setVideoStream(localVideoStream)
 
         // finalize the view data

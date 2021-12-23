@@ -1,5 +1,6 @@
 package com.example.composeazurecalling.viewmodel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -16,16 +17,18 @@ import java9.util.function.Consumer
 import java.util.*
 import kotlin.collections.HashMap
 
-class CommunicationCallingViewModel(application: Application) : ViewModel(),
-    PropertyChangedListener, ParticipantsUpdatedListener, LocalVideoStreamsUpdatedListener,
-    IncomingCallListener {
-
+class CommunicationCallingViewModel: ViewModel(),
+    PropertyChangedListener,
+    ParticipantsUpdatedListener,
+    LocalVideoStreamsUpdatedListener,
+    IncomingCallListener
+{
     companion object {
         val LOG_TAG = CommunicationCallingViewModel::class.java.simpleName
     }
 
     //region Properties
-    private val _context = application.applicationContext
+    @SuppressLint("StaticFieldLeak")
     private var _callClient: CallClient? = null
     private var _deviceManager: DeviceManager? = null
     private var _availableCameras = HashMap<CameraFacing, VideoDeviceInfo>()
@@ -73,16 +76,16 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
     //endregion
 
     //region Public Methods
-    fun setupCalling(applicationContext: Context) {
+    fun setupCalling(context: Context) {
         _callClient = CallClient()
-        setupDeviceManager()
+        setupDeviceManager(context)
     }
 
-    fun getLocalVideoStream(): LocalVideoStream?  {
+    fun getLocalVideoStream(context: Context): LocalVideoStream?  {
         Log.d(LOG_TAG, "getLocalVideoStream")
         if (_localVideoStream == null) {
             _initialCamera?.let {
-                return initializeLocalVideoStream(it)
+                return initializeLocalVideoStream(it, context)
             } ?: run {
                 Log.d(LOG_TAG, "Camera is not initialized yet!")
                 return null
@@ -92,7 +95,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         }
     }
 
-    fun joinCall(joinCallConfig: JoinCallConfig) {
+    fun joinCall(joinCallConfig: JoinCallConfig, context: Context) {
         _joinId = joinCallConfig.joinId
         val callLocator = GroupCallLocator(_joinId)
 
@@ -102,7 +105,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
             it.dispose()
         }
 
-        createCallAgentAsync(joinCallConfig.displayName)
+        createCallAgentAsync(joinCallConfig.displayName, context)
             ?.whenComplete { callAgent: CallAgent?, callAgentThrowable: Throwable? ->
                 callAgent?.let { agent ->
                     _callAgent.postValue(agent)
@@ -115,11 +118,11 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
 
                     if (joinCallConfig.isCameraOn) {
                         val localVideoStreams = arrayOfNulls<LocalVideoStream>(1)
-                        localVideoStreams[0] = getLocalVideoStream()
+                        localVideoStreams[0] = getLocalVideoStream(context)
                         var videoOptions = VideoOptions(localVideoStreams)
-                        callWithOptions(agent, audioOptions, videoOptions, callLocator)
+                        callWithOptions(context, agent, audioOptions, videoOptions, callLocator)
                     } else {
-                        callWithOptions(agent, audioOptions, null, callLocator)
+                        callWithOptions(context, agent, audioOptions, null, callLocator)
                     }
                 }
             }
@@ -129,10 +132,10 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         return _joinId
     }
 
-    fun turnOnVideoAsync() {
+    fun turnOnVideoAsync(_context: Context) {
         Log.d(LOG_TAG, "turnOnVideoAsync")
         _call?.let { call ->
-            getLocalVideoStream()?.let {
+            getLocalVideoStream(_context)?.let {
                 call.startVideo(_context,  it).thenApply {
                     _cameraOn.postValue(true)
                     _isVideoOnHold.postValue(false)
@@ -141,10 +144,10 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         }
     }
 
-    fun turnOffVideoAsync() {
+    fun turnOffVideoAsync(_context: Context) {
         Log.d(LOG_TAG, "turnOffVideoAsync")
         _call?.let { call ->
-            getLocalVideoStream()?.let {
+            getLocalVideoStream(_context)?.let {
                 call.stopVideo(_context, it).thenRun {
                     _cameraOn.postValue(false)
                     _isVideoOnHold.postValue(true)
@@ -153,7 +156,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         }
     }
 
-    fun turnOnAudioAsync() {
+    fun turnOnAudioAsync(_context: Context) {
         Log.d(LOG_TAG, "turnOnAudioAsync")
         _call?.let{ call ->
             call.unmute(_context).thenRun{
@@ -162,7 +165,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         }
     }
 
-    fun turnOffAudioAsync() {
+    fun turnOffAudioAsync(_context: Context) {
         Log.d(LOG_TAG, "turnOffAudioAsync")
         _call?.let { call ->
             call.mute(_context).thenRun{
@@ -171,20 +174,20 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         }
     }
 
-    fun pauseVideo() {
+    fun pauseVideo(context: Context) {
         Log.d(LOG_TAG, "pauseVideo")
         _call?.let { call ->
             if (cameraOn.value!!) {
-                turnOffVideoAsync()
+                turnOffVideoAsync(context)
             }
         }
     }
 
-    fun resumeVideo() {
+    fun resumeVideo(context: Context) {
         Log.d(LOG_TAG, "resumeVideo")
         _call?.let { call ->
             if (isVideoOnHold.value!!) {
-                turnOnVideoAsync()
+                turnOnVideoAsync(context)
             }
         }
     }
@@ -216,7 +219,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
     //endregion
 
     //region Private Methods
-    private fun setupDeviceManager() {
+    private fun setupDeviceManager(_context: Context) {
         _callClient?.let { callClient ->
             callClient.getDeviceManager(_context)
                 .thenAccept(Consumer { deviceManager ->
@@ -284,11 +287,11 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
         return _availableCameras.get(CameraFacing.BACK)
     }
 
-    private fun initializeLocalVideoStream(camera: VideoDeviceInfo): LocalVideoStream{
+    private fun initializeLocalVideoStream(camera: VideoDeviceInfo, _context: Context): LocalVideoStream{
         return LocalVideoStream(camera, _context)
     }
 
-    private fun createCallAgentAsync(displayName: String?): CompletableFuture<CallAgent>? {
+    private fun createCallAgentAsync(displayName: String?, _context: Context): CompletableFuture<CallAgent>? {
         val communicationTokenRefreshOptions = CommunicationTokenRefreshOptions({
             TokenService().getCommunicationTokenAsync().get()
         }, true)
@@ -310,6 +313,7 @@ class CommunicationCallingViewModel(application: Application) : ViewModel(),
     }
 
     private fun callWithOptions(
+        _context: Context,
         callAgent: CallAgent,
         audioOptions: AudioOptions,
         videoOptions: VideoOptions?,

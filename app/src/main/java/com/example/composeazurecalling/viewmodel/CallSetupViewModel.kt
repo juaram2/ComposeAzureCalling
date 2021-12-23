@@ -1,11 +1,10 @@
 package com.example.composeazurecalling.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class CallSetupViewModel(application: Application) : ViewModel() {
+class CallSetupViewModel: ViewModel() {
 
     //region callSetup properties
     val isVideoChecked = MutableLiveData<Boolean>(false)

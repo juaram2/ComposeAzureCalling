@@ -1,9 +1,9 @@
 package com.example.composeazurecalling
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -11,10 +11,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -25,11 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
+import com.example.composeazurecalling.helper.AudioSessionManager
 import com.example.composeazurecalling.model.JoinCallType
 import com.example.composeazurecalling.ui.activity.CallSetupActivity
 import com.example.composeazurecalling.ui.theme.ComposeAzureCallingTheme
+import com.example.composeazurecalling.ui.view.Call
 import com.example.composeazurecalling.utils.ActivityLifecycleCallbacks
 import com.example.composeazurecalling.utils.PrefUtil
+import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -47,6 +50,10 @@ class MainActivity : ComponentActivity() {
     )
     private val lifecycleCallbacks = ActivityLifecycleCallbacks()
 
+    private val communicationCallingVM by viewModels<CommunicationCallingViewModel>()
+
+    private var audioSessionManager: AudioSessionManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -56,11 +63,14 @@ class MainActivity : ComponentActivity() {
             registerActivityLifecycleCallbacks(lifecycleCallbacks)
         }
 
+        communicationCallingVM.setupCalling(this.applicationContext)
+        createAudioSessionManager()
+
         setContent {
             ComposeAzureCallingTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Greeting()
+                    Call()
                 }
             }
         }
@@ -80,27 +90,26 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, permissionsToAskFor.toTypedArray(), 1)
         }
     }
+
+    private fun createAudioSessionManager() {
+        this.audioSessionManager = AudioSessionManager(
+            applicationContext.getSystemService(AUDIO_SERVICE) as AudioManager
+        )
+    }
 }
 
 @Composable
-fun Greeting() {
+fun Main() {
     val context = LocalContext.current
-    val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            it.data?.let { data ->
-                val joinCallConfig = data.getSerializableExtra("joinCallConfig")
-                Log.d("debug", "joinCallConfig: $joinCallConfig")
-            }
-        }
-    }
 
     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
         TextButton(
             onClick = {
-                val intent = Intent(context, CallSetupActivity::class.java)
-                intent.putExtra("callType", JoinCallType.GROUP_CALL)
-                intent.putExtra("joinId", UUID.fromString("29858349-bbd5-4c0d-067e-08d9c5d76708"))
-                callLauncher.launch(intent)
+                context.startActivity(Intent(context, CallSetupActivity::class.java))
+//                val intent = Intent(context, CallSetupActivity::class.java)
+//                intent.putExtra("callType", JoinCallType.GROUP_CALL)
+//                intent.putExtra("joinId", "29858349-bbd5-4c0d-067e-08d9c5d76708")
+//                callLauncher.launch(intent)
             },
             modifier = Modifier.align(alignment = Alignment.CenterVertically)
         ) {
@@ -113,6 +122,6 @@ fun Greeting() {
 @Composable
 fun DefaultPreview() {
     ComposeAzureCallingTheme {
-        Greeting()
+        Main()
     }
 }

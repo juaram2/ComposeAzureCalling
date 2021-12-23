@@ -9,38 +9,31 @@ import com.example.composeazurecalling.helper.AudioSessionManager
 import com.example.composeazurecalling.model.JoinCallType
 import com.example.composeazurecalling.ui.theme.ComposeAzureCallingTheme
 import com.example.composeazurecalling.ui.view.Call
+import com.example.composeazurecalling.utils.ifLet
 import com.example.composeazurecalling.viewmodel.CallSetupViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import java.util.*
 
 class CallSetupActivity : AppCompatActivity() {
-    private val callVM by viewModels<CallSetupViewModel>()
+//    private val callVM by viewModels<CallSetupViewModel>()
 //    private val authorizationVM by viewModels<AuthorizationVM>()
-    private val communicationCallingVM by viewModels<CommunicationCallingViewModel>()
+//    private val communicationCallingVM by viewModels<CommunicationCallingViewModel>()
 
     private var audioSessionManager: AudioSessionManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        communicationCallingVM.setupCalling(this.applicationContext)
-        createAudioSessionManager()
 
-        val callType = intent.getSerializableExtra("callType") as JoinCallType
-        val joinId = intent.getSerializableExtra("joinId") as UUID
+//        val callType = intent.getSerializableExtra("callType") as JoinCallType
+//        val joinId = intent.getStringExtra("joinId")
 
         setContent {
-            ComposeAzureCallingTheme() {
-                joinId?.let {
-                    Call(callType = callType, joinId = it)
-                }
+            ComposeAzureCallingTheme {
+                Call()
             }
         }
     }
 
-    private fun createAudioSessionManager() {
-        this.audioSessionManager = AudioSessionManager(
-            applicationContext.getSystemService(AUDIO_SERVICE) as AudioManager
-        )
-    }
+
 }

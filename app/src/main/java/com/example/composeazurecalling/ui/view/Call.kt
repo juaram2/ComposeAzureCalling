@@ -38,10 +38,9 @@ import kotlinx.android.parcel.Parcelize
 import java.util.*
 
 @Composable
-fun Call(callType: JoinCallType, joinId: UUID) {
+fun Call() {
     val scrollState = rememberScrollState()
 //    val authorizationVM: AuthorizationVM = viewModel()
-    val callingVM: CommunicationCallingViewModel = viewModel()
 //    val loading = authorizationVM.loading.observeAsState().value
 //    val profile = authorizationVM.profile.observeAsState().value
 
@@ -53,19 +52,16 @@ fun Call(callType: JoinCallType, joinId: UUID) {
 //        LoadingBar()
 //    } else {
         Column(Modifier.verticalScroll(scrollState)) {
-            CallScreen(callingVM, callType, joinId)
+            CallScreen()
         }
 //    }
 }
 
 @Composable
-fun CallScreen(
-    callingVM: CommunicationCallingViewModel,
-    callType: JoinCallType,
-    joinId: UUID
-) {
+fun CallScreen() {
     val context = LocalContext.current
 
+    val callingVM: CommunicationCallingViewModel = viewModel()
     val callSetupVM: CallSetupViewModel = viewModel()
     var rendererView: VideoStreamRenderer? = null
     var previewVideo: VideoStreamRendererView? = null
@@ -126,7 +122,7 @@ fun CallScreen(
     }, update = { layout ->
         if (isVideoChecked) {
             Log.d("debug", "isVideoChecked true")
-            val localVideoStream = callingVM.getLocalVideoStream()
+            val localVideoStream = callingVM.getLocalVideoStream(context)
             rendererView = VideoStreamRenderer(localVideoStream, context)
             rendererView?.let {
                 previewVideo = it.createView(CreateViewOptions(ScalingMode.CROP))
@@ -162,7 +158,11 @@ fun CallScreen(
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    joinId, !isMicChecked, isVideoChecked, displayName!!, callType)
+                    UUID.fromString("671cc6c0-63e2-450d-067f-08d9c5d76708"),
+                    !isMicChecked,
+                    isVideoChecked,
+                    displayName ?: "aram",
+                    JoinCallType.GROUP_CALL)
                 val intent = Intent(context, CallScreenActivity::class.java)
                 intent.putExtra("joinCallConfig", joinCallConfig)
                 groupCallLauncher.launch(intent)
