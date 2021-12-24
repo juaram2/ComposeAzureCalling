@@ -1,8 +1,6 @@
 package com.example.composeazurecalling.ui.view
 
-import android.content.Intent
-import android.os.Bundle
-import android.os.Parcelable
+import android.net.Uri
 import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
@@ -22,43 +20,50 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.azure.android.communication.calling.CreateViewOptions
 import com.azure.android.communication.calling.ScalingMode
 import com.azure.android.communication.calling.VideoStreamRenderer
 import com.azure.android.communication.calling.VideoStreamRendererView
 import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.model.JoinCallType
-import com.example.composeazurecalling.ui.activity.CallScreenActivity
+import com.example.composeazurecalling.utils.CallConfigNavType
 import com.example.composeazurecalling.utils.ifLet
 import com.example.composeazurecalling.viewmodel.CallSetupViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import com.google.gson.Gson
-import kotlinx.android.parcel.Parcelize
 import java.util.*
 
 @Composable
 fun Call() {
+    val navController = rememberNavController()
     val scrollState = rememberScrollState()
-//    val authorizationVM: AuthorizationVM = viewModel()
-//    val loading = authorizationVM.loading.observeAsState().value
-//    val profile = authorizationVM.profile.observeAsState().value
 
-//    LaunchedEffect(key1 = Unit) {
-//        authorizationVM.getUserProfile()
-//    }
-//
-//    if (loading == true) {
-//        LoadingBar()
-//    } else {
-        Column(Modifier.verticalScroll(scrollState)) {
-            CallScreen()
+    NavHost(navController = navController, startDestination = "main") {
+        composable("main") {
+            Column(Modifier.verticalScroll(scrollState)) {
+                CallScreen(navController)
+            }
         }
-//    }
+
+        composable(
+            route = "groupCall/{joinCallConfig}",
+            arguments = listOf(navArgument("joinCallConfig"){ type = CallConfigNavType() }
+        )) {
+            val joinCallConfig = requireNotNull(it.arguments).getSerializable("joinCallConfig") as JoinCallConfig
+            GroupCall(joinCallConfig)
+        }
+    }
 }
 
+
+
 @Composable
-fun CallScreen() {
+fun CallScreen(navController: NavHostController) {
     val context = LocalContext.current
 
     val callingVM: CommunicationCallingViewModel = viewModel()
@@ -158,40 +163,19 @@ fun CallScreen() {
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("d8ad42e7-b58b-4600-0680-08d9c5d76708"),
+                    UUID.fromString("047241cc-bab5-4828-48eb-08d9c685fdcf"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",
                     JoinCallType.GROUP_CALL)
-                val intent = Intent(context, CallScreenActivity::class.java)
-                intent.putExtra("joinCallConfig", joinCallConfig)
-                groupCallLauncher.launch(intent)
+                val json = Uri.encode(Gson().toJson(joinCallConfig))
+                navController.navigate("groupCall/$json")
+//                val intent = Intent(context, CallScreenActivity::class.java)
+//                intent.putExtra("joinCallConfig", joinCallConfig)
+//                groupCallLauncher.launch(intent)
             }
         }, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Call")
         }
-    }
-}
-
-@Parcelize
-data class CallNavType(
-    val joinId: UUID,
-    val isMicChecked: Boolean,
-    val isVideoChecked: Boolean,
-    val displayName: String,
-    val callType: JoinCallType
-) : Parcelable
-
-class CallParamType : NavType<CallNavType>(isNullableAllowed = false) {
-    override fun get(bundle: Bundle, key: String): CallNavType? {
-        return bundle.getParcelable(key)
-    }
-
-    override fun parseValue(value: String): CallNavType {
-        return Gson().fromJson(value, CallNavType::class.java)
-    }
-
-    override fun put(bundle: Bundle, key: String, value: CallNavType) {
-        bundle.putParcelable(key, value)
     }
 }
