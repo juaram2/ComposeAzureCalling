@@ -1,6 +1,7 @@
 package com.example.composeazurecalling.ui.view
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -45,6 +46,7 @@ class ParticipantView(context: Context) : RelativeLayout(context) {
     }
 
     fun setVideoStream(localVideoStream: LocalVideoStream?) {
+        Log.d("debug","localVideoStream: $localVideoStream")
         if (localVideoStream == null) {
             cleanUpVideoRendering()
             return

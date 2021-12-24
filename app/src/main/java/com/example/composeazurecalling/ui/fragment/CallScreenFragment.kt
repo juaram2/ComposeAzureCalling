@@ -219,6 +219,7 @@ class CallScreenFragment : Fragment() {
                     binding.yourCameraHolder.visibility = if (localParticipantViewGridIndex == null && !it) View.INVISIBLE else View.VISIBLE
                     videoImageButton.isSelected = true
                 } else {
+                    Log.d(LOG_TAG, "cameraOn false")
                     localParticipantView.setVideoStream(null as LocalVideoStream?)
                     localParticipantView.setVideoDisplayed(it)
                     binding.yourCameraHolder.visibility = if (localParticipantViewGridIndex == null && !it) View.INVISIBLE else View.VISIBLE
@@ -263,7 +264,8 @@ class CallScreenFragment : Fragment() {
         }
 
         communicationCallingViewModel.displayedParticipantsLiveData.observe(viewLifecycleOwner) {
-            handler.post(Runnable {
+//            handler.post(Runnable {
+            Log.d("debug", "displayedParticipantsLiveData: $it")
                 if (viewUpdatePending) {
                 } else {
                     viewUpdatePending = true
@@ -274,10 +276,9 @@ class CallScreenFragment : Fragment() {
                         setParticipantCountToFloatingHeader(communicationCallingViewModel.getRemoteParticipantCount())
                         lastViewUpdateTimestamp = System.currentTimeMillis()
                         viewUpdatePending = false
-                    }, (MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES - timeElapsed).coerceAtLeast(0)
-                    )
+                    }, (MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES - timeElapsed).coerceAtLeast(0))
                 }
-            })
+//            })
         }
 
         joinCallConfig?.let {

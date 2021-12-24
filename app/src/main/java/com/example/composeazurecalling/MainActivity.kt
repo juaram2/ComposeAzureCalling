@@ -48,23 +48,16 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.WAKE_LOCK,
         Manifest.permission.READ_PHONE_STATE
     )
-    private val lifecycleCallbacks = ActivityLifecycleCallbacks()
 
     private val communicationCallingVM by viewModels<CommunicationCallingViewModel>()
-
-    private var audioSessionManager: AudioSessionManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        PrefUtil.init(this)
         getAllPermissions()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            registerActivityLifecycleCallbacks(lifecycleCallbacks)
-        }
 
         communicationCallingVM.setupCalling(this.applicationContext)
-        createAudioSessionManager()
+        CloudHospitalApp.instance?.createAudioSessionManager()
 
         setContent {
             ComposeAzureCallingTheme {
@@ -89,12 +82,6 @@ class MainActivity : ComponentActivity() {
         if (permissionsToAskFor.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, permissionsToAskFor.toTypedArray(), 1)
         }
-    }
-
-    private fun createAudioSessionManager() {
-        this.audioSessionManager = AudioSessionManager(
-            applicationContext.getSystemService(AUDIO_SERVICE) as AudioManager
-        )
     }
 }
 

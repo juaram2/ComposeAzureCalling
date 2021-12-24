@@ -158,7 +158,7 @@ fun CallScreen() {
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("671cc6c0-63e2-450d-067f-08d9c5d76708"),
+                    UUID.fromString("d8ad42e7-b58b-4600-0680-08d9c5d76708"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",

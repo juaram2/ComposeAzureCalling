@@ -85,6 +85,7 @@ class CommunicationCallingViewModel: ViewModel(),
         Log.d(LOG_TAG, "getLocalVideoStream")
         if (_localVideoStream == null) {
             _initialCamera?.let {
+                Log.d(LOG_TAG, "_initialCamera: ${it.id}")
                 return initializeLocalVideoStream(it, context)
             } ?: run {
                 Log.d(LOG_TAG, "Camera is not initialized yet!")
@@ -340,7 +341,7 @@ class CommunicationCallingViewModel: ViewModel(),
         for (addedParticipant: RemoteParticipant in addedParticipants) {
             var id = getId(addedParticipant)
 
-            if (_remoteParticipantsMap?.containsKey(id)) {
+            if (_remoteParticipantsMap.containsKey(id)) {
                 continue
             }
 
@@ -547,10 +548,10 @@ class CommunicationCallingViewModel: ViewModel(),
         Log.d(LOG_TAG, "findInactiveSpeakerToSwap")
         for (i in 0.._displayedRemoteParticipants.size) {
             var displayedRemoteParticipant:RemoteParticipant = _displayedRemoteParticipants.get(i)
-            if (!displayedRemoteParticipant.isSpeaking()) {
+            if (!displayedRemoteParticipant.isSpeaking) {
                 var originId = getId(displayedRemoteParticipant)
                 _displayedRemoteParticipantIds.remove(originId)
-                _displayedRemoteParticipants.set(i, remoteParticipant)
+                _displayedRemoteParticipants[i] = remoteParticipant
                 _displayedRemoteParticipantIds.add(id)
                 _displayedParticipantsLiveData.postValue(_displayedRemoteParticipants)
                 break
@@ -578,7 +579,7 @@ class CommunicationCallingViewModel: ViewModel(),
         try {
             _call?.let { call ->
                 _callState.postValue(call.state)
-                Log.d(LOG_TAG, "CallState: ${call.state.toString()}")
+                Log.d(LOG_TAG, "CallState: ${call.state}")
                 when (call.state) {
                     CallState.CONNECTING -> {
                         Log.d(LOG_TAG, "CallState: Connecting")
