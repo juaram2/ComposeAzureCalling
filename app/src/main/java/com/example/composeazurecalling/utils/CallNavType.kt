@@ -1,12 +1,10 @@
 package com.example.composeazurecalling.utils
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.navigation.NavType
 import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.model.JoinCallType
 import com.google.gson.Gson
-import kotlinx.android.parcel.Parcelize
 import java.util.*
 
 class CallNavType : NavType<JoinCallType>(isNullableAllowed = false) {

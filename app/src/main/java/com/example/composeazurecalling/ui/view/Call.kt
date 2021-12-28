@@ -33,6 +33,7 @@ import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.model.JoinCallType
 import com.example.composeazurecalling.utils.CallConfigNavType
 import com.example.composeazurecalling.utils.ifLet
+import com.example.composeazurecalling.viewmodel.CallScreenViewModel
 import com.example.composeazurecalling.viewmodel.CallSetupViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import com.google.gson.Gson
@@ -42,6 +43,10 @@ import java.util.*
 fun Call() {
     val navController = rememberNavController()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    val callingViewModel: CommunicationCallingViewModel = viewModel()
+    val groupCallVM: CallScreenViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = "main") {
         composable("main") {
@@ -55,7 +60,7 @@ fun Call() {
             arguments = listOf(navArgument("joinCallConfig"){ type = CallConfigNavType() }
         )) {
             val joinCallConfig = requireNotNull(it.arguments).getSerializable("joinCallConfig") as JoinCallConfig
-            GroupCall(joinCallConfig)
+            GroupCall(joinCallConfig, callingViewModel, groupCallVM, ParticipantView(context))
         }
     }
 }
@@ -71,10 +76,6 @@ fun CallScreen(navController: NavHostController) {
     var rendererView: VideoStreamRenderer? = null
     var previewVideo: VideoStreamRendererView? = null
 
-//    if (profile != null) {
-//        callSetupVM.setDisplayName(profile.fullname)
-//    }
-
     val displayName = callSetupVM.displayName.observeAsState().value
 //    val isMicChecked = viewModel.isMicChecked.observeAsState().value
     val isVideoCheck = callSetupVM.isVideoChecked.observeAsState().value
@@ -84,16 +85,6 @@ fun CallScreen(navController: NavHostController) {
     var isVolumeChecked by remember { mutableStateOf(false) }
 
     val nameState = remember { mutableStateOf(TextFieldValue()) }
-
-    val groupCallLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        it.data?.let { data ->
-            val joinCallConfig = data.getSerializableExtra("joinCallConfig") as JoinCallConfig
-            Log.d("debug", "joinCallConfig: ${joinCallConfig.displayName}")
-            Log.d("debug", "joinCallConfig: ${joinCallConfig.joinId}")
-            Log.d("debug", "joinCallConfig: ${joinCallConfig.isCameraOn}")
-            Log.d("debug", "joinCallConfig: ${joinCallConfig.isMicrophoneMuted}")
-        }
-    }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
         IconButton(onClick = { isVideoChecked = !isVideoChecked }) {
@@ -149,7 +140,10 @@ fun CallScreen(navController: NavHostController) {
     ) {
         TextField(
             value = nameState.value,
-            onValueChange = { nameState.value = it },
+            onValueChange = {
+                nameState.value = it
+                callSetupVM.setDisplayName(it.text)
+            },
             label = { Text("Name") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -163,16 +157,13 @@ fun CallScreen(navController: NavHostController) {
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("047241cc-bab5-4828-48eb-08d9c685fdcf"),
+                    UUID.fromString("0a9a2cc0-8452-47ce-72ed-08d9c9ca48a7"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",
                     JoinCallType.GROUP_CALL)
                 val json = Uri.encode(Gson().toJson(joinCallConfig))
                 navController.navigate("groupCall/$json")
-//                val intent = Intent(context, CallScreenActivity::class.java)
-//                intent.putExtra("joinCallConfig", joinCallConfig)
-//                groupCallLauncher.launch(intent)
             }
         }, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Call")

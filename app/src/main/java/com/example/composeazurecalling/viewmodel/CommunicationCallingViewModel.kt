@@ -42,7 +42,7 @@ class CommunicationCallingViewModel: ViewModel(),
     private val _callAgent = MutableLiveData<CallAgent?>()
     val callAgent: LiveData<CallAgent?> = _callAgent
 
-    private var _call: Call? = null
+    var _call: Call? = null
 
     private val _callState = MutableLiveData<CallState?>().apply {
         value = CallState.NONE

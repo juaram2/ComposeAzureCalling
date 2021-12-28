@@ -92,7 +92,7 @@ fun Main() {
     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
         TextButton(
             onClick = {
-                context.startActivity(Intent(context, CallSetupActivity::class.java))
+//                context.startActivity(Intent(context, CallSetupActivity::class.java))
 //                val intent = Intent(context, CallSetupActivity::class.java)
 //                intent.putExtra("callType", JoinCallType.GROUP_CALL)
 //                intent.putExtra("joinId", "29858349-bbd5-4c0d-067e-08d9c5d76708")
