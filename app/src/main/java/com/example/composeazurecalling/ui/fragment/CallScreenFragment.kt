@@ -283,7 +283,7 @@ class CallScreenFragment : Fragment() {
 
         joinCallConfig?.let {
             setLayoutComponentState(it.isMicrophoneMuted, it.isCameraOn, this.callHangUpOverlaid)
-            communicationCallingViewModel.joinCall(it, this.requireContext())
+            communicationCallingViewModel.joinCall(it)
         }
 
         return binding.root
@@ -339,8 +339,8 @@ class CallScreenFragment : Fragment() {
     private fun initializeCallNotification() {
         activity?.let {
             Log.d("debug", "initializeCallNotification")
-//            inCallServiceIntent = Intent(it, InCallService::class.java)
-//            it.startService(inCallServiceIntent)
+            inCallServiceIntent = Intent(it, InCallService::class.java)
+            it.startService(inCallServiceIntent)
         }
     }
 

@@ -32,6 +32,7 @@ import com.example.composeazurecalling.ui.theme.ComposeAzureCallingTheme
 import com.example.composeazurecalling.ui.view.Call
 import com.example.composeazurecalling.utils.ActivityLifecycleCallbacks
 import com.example.composeazurecalling.utils.PrefUtil
+import com.example.composeazurecalling.viewmodel.AuthenticationViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import java.util.*
 
@@ -50,12 +51,14 @@ class MainActivity : ComponentActivity() {
     )
 
     private val communicationCallingVM by viewModels<CommunicationCallingViewModel>()
+    private val authenticationVM by viewModels<AuthenticationViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         getAllPermissions()
 
+        authenticationVM.onClickSignin()
         communicationCallingVM.setupCalling()
         CloudHospitalApp.instance?.createAudioSessionManager()
 

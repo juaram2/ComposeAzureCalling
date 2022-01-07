@@ -17,7 +17,7 @@ class Constants {
         var identity_stg = "https://identity-stg.icloudhospital.com"
         var identity_prd = "https://identity.icloudhospital.com"
 
-//        var scope = "openid email profile roles CloudHospital_api IdentityServerApi offline_access"
+        var scope = "openid email profile roles CloudHospital_api IdentityServerApi offline_access"
 //
 //        var sendBirdAppId_dev = "D39AC198-F710-498F-8D68-46793C09293E"
 //        var sendBirdAppId_stg = "6BFD4F62-DB98-4954-814C-C665501854A8"

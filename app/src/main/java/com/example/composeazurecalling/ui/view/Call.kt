@@ -14,7 +14,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -52,7 +54,7 @@ fun Call() {
     NavHost(navController = navController, startDestination = "main") {
         composable("main") {
             Column(Modifier.verticalScroll(scrollState)) {
-                CallScreen(navController)
+                CallScreen(navController, callingViewModel)
             }
         }
 
@@ -69,23 +71,27 @@ fun Call() {
 
 
 @Composable
-fun CallScreen(navController: NavHostController) {
-//    val context = LocalContext.current
+fun CallScreen(navController: NavHostController, callingVM: CommunicationCallingViewModel) {
+    val context = LocalContext.current
 
-    val callingVM: CommunicationCallingViewModel = viewModel()
     val callSetupVM: CallSetupViewModel = viewModel()
     var rendererView: VideoStreamRenderer? = null
     var previewVideo: VideoStreamRendererView? = null
 
     val displayName = callSetupVM.displayName.observeAsState().value
-//    val isMicChecked = viewModel.isMicChecked.observeAsState().value
-    val isVideoCheck = callSetupVM.isVideoChecked.observeAsState().value
-    val startCall = callSetupVM.startCall.observeAsState().value
     var isVideoChecked by remember { mutableStateOf(false) }
     var isMicChecked by remember { mutableStateOf(false) }
     var isVolumeChecked by remember { mutableStateOf(false) }
 
     val nameState = remember { mutableStateOf(TextFieldValue()) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (rendererView != null) {
+                rendererView!!.dispose()
+            }
+        }
+    }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
         IconButton(onClick = { isVideoChecked = !isVideoChecked }) {
@@ -111,28 +117,37 @@ fun CallScreen(navController: NavHostController) {
         }
     }
 
-    AndroidView(factory = { context ->
-        //Here you can construct your View
-        LinearLayout(context).apply {
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 800)
-        }
-    }, update = { layout ->
-        if (isVideoChecked) {
-            Log.d("debug", "isVideoChecked true")
-            val localVideoStream = callingVM.getLocalVideoStream()
-            rendererView = VideoStreamRenderer(localVideoStream, context)
-            rendererView?.let {
-                previewVideo = it.createView(CreateViewOptions(ScalingMode.CROP))
-                layout.addView(previewVideo)
+    if (isVideoChecked) {
+        AndroidView(factory = { context ->
+            //Here you can construct your View
+            LinearLayout(context).apply {
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 800)
             }
-        } else {
-            Log.d("debug", "isVideoChecked false")
-            rendererView?.let {
-                it.dispose()
-                layout.removeView(previewVideo)
+        }, update = { layout ->
+            if (isVideoChecked) {
+                Log.d("debug", "isVideoChecked true")
+                val localVideoStream = callingVM.getLocalVideoStream()
+                rendererView = VideoStreamRenderer(localVideoStream, context)
+                rendererView?.let {
+                    previewVideo = it.createView(CreateViewOptions(ScalingMode.CROP))
+                    layout.addView(previewVideo, 0)
+                }
+            } else {
+                Log.d("debug", "isVideoChecked false")
+                rendererView?.let {
+                    it.dispose()
+                    layout.removeView(previewVideo)
+                }
             }
+        })
+    } else {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(267.dp), Arrangement.SpaceAround, Alignment.CenterVertically) {
+            Icon(Icons.Default.Person, contentDescription = "camera off", tint = Color.Gray)
         }
-    })
+    }
 
     Column(
         Modifier
@@ -158,7 +173,7 @@ fun CallScreen(navController: NavHostController) {
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("c9c3c31a-b185-4c5c-e334-08d9d181339c"),
+                    UUID.fromString("9552222e-fd83-45f3-e335-08d9d181339c"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",

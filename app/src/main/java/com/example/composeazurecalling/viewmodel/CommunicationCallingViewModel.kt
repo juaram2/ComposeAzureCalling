@@ -97,7 +97,7 @@ class CommunicationCallingViewModel: ViewModel(),
         }
     }
 
-    fun joinCall(joinCallConfig: JoinCallConfig, context: Context) {
+    fun joinCall(joinCallConfig: JoinCallConfig) {
         _joinId = joinCallConfig.joinId
         val callLocator = GroupCallLocator(_joinId)
 
@@ -107,7 +107,7 @@ class CommunicationCallingViewModel: ViewModel(),
             it.dispose()
         }
 
-        createCallAgentAsync(joinCallConfig.displayName, context)
+        createCallAgentAsync(joinCallConfig.displayName)
             ?.whenComplete { callAgent: CallAgent?, callAgentThrowable: Throwable? ->
                 callAgent?.let { agent ->
                     _callAgent.postValue(agent)
@@ -293,7 +293,7 @@ class CommunicationCallingViewModel: ViewModel(),
         return LocalVideoStream(camera, context)
     }
 
-    private fun createCallAgentAsync(displayName: String?, _context: Context): CompletableFuture<CallAgent>? {
+    private fun createCallAgentAsync(displayName: String?): CompletableFuture<CallAgent>? {
         val communicationTokenRefreshOptions = CommunicationTokenRefreshOptions({
             TokenService().getCommunicationTokenAsync().get()
         }, true)
@@ -305,7 +305,7 @@ class CommunicationCallingViewModel: ViewModel(),
         callAgentOptions.displayName = displayName
         _callClient?.let { callClient ->
             return callClient.createCallAgent(
-                _context,
+                context,
                 communicationTokenCredential,
                 callAgentOptions
             )

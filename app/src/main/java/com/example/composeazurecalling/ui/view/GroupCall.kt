@@ -1,8 +1,9 @@
 package com.example.composeazurecalling.ui.view
 
-import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.telecom.InCallService
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -25,18 +27,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.azure.android.communication.calling.*
+import com.example.composeazurecalling.CloudHospitalApp.Companion.context
 import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.viewmodel.CallScreenViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import java.util.*
 
-val activity = Activity()
 
 private val MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES = 2500
 private val handler = Handler(Looper.getMainLooper())
@@ -53,6 +58,12 @@ private var viewUpdatePending = false
 private var lastViewUpdateTimestamp: Long = 0
 private var callHangUpOverlaid = false
 
+fun Context.findActivity(): AppCompatActivity? = when (this) {
+    is AppCompatActivity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @Composable
 fun GroupCall(
     joinCallConfig: JoinCallConfig,
@@ -61,9 +72,11 @@ fun GroupCall(
     localParticipantView: ParticipantView
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val activity = context?.findActivity()
 
-    var isVideoChecked = joinCallConfig.isCameraOn
-    var isMicChecked = !joinCallConfig.isMicrophoneMuted
+    val isVideoChecked = remember { mutableStateOf(joinCallConfig.isCameraOn) }
+    val isMicChecked = remember { mutableStateOf(!joinCallConfig.isMicrophoneMuted) }
     var inviteState by remember { mutableStateOf(false) }
     var callEndState by remember { mutableStateOf(false) }
 
@@ -74,69 +87,52 @@ fun GroupCall(
     val micOn = callingVM.micOn.observeAsState().value
     val count = callingVM._call?.remoteParticipants?.size
 
-    displayedParticipants.let {
-        Log.d("debug", "displayedParticipants: $it")
-        val prevParticipantViewList = ArrayList<ParticipantView>()
-        prevParticipantViewList.addAll(participantViewList)
-        val preParticipantIdIndexPathMap = hashMapOf<String, Int>()
-        preParticipantIdIndexPathMap.putAll(participantIdIndexPathMap)
-        participantViewList.clear()
-        participantIdIndexPathMap.clear()
-
-        it?.let { participants ->
-            val displayedRemoteParticipants: ArrayList<RemoteParticipant> = participants
-
-            var indexForNewParticipantViewList = 0
-            for (i in displayedRemoteParticipants.indices) {
-                val remoteParticipant = displayedRemoteParticipants[i]
-                val participantState = remoteParticipant.state
-                if (ParticipantState.DISCONNECTED == participantState) {
-                    continue
-                }
-                val id: String = callingVM.getId(remoteParticipant).toString()
-                var pv: ParticipantView? = null
-                if (preParticipantIdIndexPathMap.containsKey(id)) {
-                    val prevIndex = preParticipantIdIndexPathMap[id]!!
-                    pv = prevParticipantViewList[prevIndex]
-                    val remoteVideoStream = getFirstVideoStream(remoteParticipant)
-                    pv.setVideoStream(remoteVideoStream)
-                } else {
-                    context.let { context ->
-                        pv = ParticipantView(context).apply {
-                            this.setDisplayName(remoteParticipant.displayName)
-                            val remoteVideoStream = getFirstVideoStream(remoteParticipant)
-                            this.setVideoStream(remoteVideoStream)
-                        }
-                    }
-                }
-                pv?.let { view ->
-                    view.setIsMuted(remoteParticipant.isMuted)
-                    view.setIsSpeaking(remoteParticipant.isSpeaking)
-                    // update the participantIdIndexPathMap, participantViewList and participantsRenderList
-                    participantIdIndexPathMap[id] = indexForNewParticipantViewList++
-                    participantViewList.add(view)
-                }
-            }
-            for (id in preParticipantIdIndexPathMap.keys) {
-                if (participantIdIndexPathMap.containsKey(id)) {
-                    continue
-                }
-                val discardedParticipantView: ParticipantView =
-                    prevParticipantViewList[preParticipantIdIndexPathMap[id]!!]
-                discardedParticipantView.cleanUpVideoRendering()
-            }
-            if (participantViewList.size == 1) {
-                if (localParticipantViewGridIndex != null) {
-                    localParticipantViewGridIndex = null
-                }
-            } else {
-                if (localParticipantViewGridIndex == null) {
-                    detachFromParentView(localParticipantView)
-                }
-                appendLocalParticipantView(localParticipantView, callingVM)
-            }
+    LaunchedEffect(Unit) {
+        activity?.let {
+            it.volumeControlStream = AudioManager.STREAM_VOICE_CALL
         }
 
+        callingVM.joinCall(joinCallConfig)
+
+        groupCallVM.setConfigureChanged(true)
+
+        if (!joinCallConfig.isMicrophoneMuted) {
+            callingVM.turnOnAudioAsync()
+        } else {
+            callingVM.turnOffAudioAsync()
+        }
+
+        if (joinCallConfig.isCameraOn) {
+            callingVM.turnOnVideoAsync()
+        } else {
+            callingVM.turnOffVideoAsync()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    callingVM.resumeVideo()
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    callingVM.pauseVideo()
+                }
+                Lifecycle.Event.ON_DESTROY -> {
+                    callingVM.displayedParticipantsLiveData.removeObservers(lifecycleOwner)
+                    localParticipantView.cleanUpVideoRendering()
+                    detachFromParentView(localParticipantView)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    displayedParticipants.let {
         handler.post(Runnable {
             if (!viewUpdatePending) {
                 viewUpdatePending = true
@@ -152,7 +148,8 @@ fun GroupCall(
     }
 
     if(cameraOn == true) {
-        localParticipantView.setVideoStream(callingVM.getLocalVideoStream(context))
+        val localStream = callingVM.getLocalVideoStream()
+        localParticipantView.setVideoStream(localStream)
         localParticipantView.setVideoDisplayed(cameraOn)
     } else {
         localParticipantView.setVideoStream(null as LocalVideoStream?)
@@ -176,29 +173,28 @@ fun GroupCall(
                 AndroidView(factory = { context ->
                     GridLayout(context).apply {
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                        setOnClickListener {
-//                            toggleParticipantHeaderNotification()
-                        }
                     }
                 }, modifier = Modifier.constrainAs(grid) {
                     top.linkTo(parent.top, margin = 16.dp)
                 }, update = { gridLayout ->
-                    gridLayout.post(Runnable { loadGridLayoutViews(context, gridLayout) })
-                    gridLayout.post(Runnable { setupGridLayout(context, gridLayout) })
-
-                    for (i in participantViewList.indices) {
-                        val participantView: ParticipantView = participantViewList[i]
-                        detachFromParentView(participantView)
-                        (gridLayout.getChildAt(i) as LinearLayout).addView(participantView, 0)
+                    if (callState == CallState.CONNECTED) {
+                        gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
                     }
 
-                    gridLayout.removeAllViews()
+                    displayedParticipants?.let {
+                        participantsNotNull(callingVM, it, gridLayout)
+                    }
+
+                    configuredChanged?.let {
+                        Log.d("debug", "configure changed!")
+                        gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
+                    }
                 })
 
                 // TODO: Local camera
-                if (isVideoChecked) {
+                if (isVideoChecked.value) {
                     AndroidView(factory = { context ->
-                        androidx.constraintlayout.widget.ConstraintLayout(context).apply {
+                        ConstraintLayout(context).apply {
                             layoutParams = LinearLayout.LayoutParams(300, 400)
                         }
                     }, modifier = Modifier.constrainAs(local) {
@@ -246,30 +242,30 @@ fun GroupCall(
                     horizontalArrangement = Arrangement.SpaceAround)
                 {
                     IconButton(onClick = {
-                        isVideoChecked = !isVideoChecked
+                        isVideoChecked.value = !isVideoChecked.value
 
-                        if (isVideoChecked) {
-                            callingVM.turnOffVideoAsync(context)
+                        if (isVideoChecked.value) {
+                            callingVM.turnOffVideoAsync()
                         } else {
-                            callingVM.turnOnVideoAsync(context)
+                            callingVM.turnOnVideoAsync()
                         }
                     }) {
-                        if (isVideoChecked) {
+                        if (isVideoChecked.value) {
                             Icon(imageVector = Icons.Default.Videocam, contentDescription = "video on")
                         } else {
                             Icon(imageVector = Icons.Default.VideocamOff, contentDescription = "video off")
                         }
                     }
                     IconButton(onClick = {
-                        isMicChecked = !isMicChecked
+                        isMicChecked.value = !isMicChecked.value
 
-                        if (isMicChecked) {
-                            callingVM.turnOffAudioAsync(context)
+                        if (isMicChecked.value) {
+                            callingVM.turnOffAudioAsync()
                         } else {
-                            callingVM.turnOnAudioAsync(context)
+                            callingVM.turnOnAudioAsync()
                         }
                     }) {
-                        if (isMicChecked) {
+                        if (isMicChecked.value) {
                             Icon(imageVector = Icons.Default.Mic, contentDescription = "mic on")
                         } else {
                             Icon(imageVector = Icons.Default.MicOff, contentDescription = "mic off")
@@ -277,31 +273,80 @@ fun GroupCall(
                     }
                     IconButton(onClick = {
                         inviteState = !inviteState
-                        openShareDialogue(context, callingVM)
+                        openShareDialogue(callingVM)
                     }) {
                         Icon(imageVector = Icons.Default.GroupAdd, contentDescription = "person add")
                     }
-                    IconButton(onClick = { callEndState = !callEndState}) {
+                    IconButton(onClick = { hangup(callingVM, localParticipantView) }) {
                         Icon(imageVector = Icons.Default.CallEnd, contentDescription = "call end", tint = Color.Red)
                     }
                 }
             }
         }
+    }
+}
 
-        if (callEndState) {
-            Dialog(onDismissRequest = { callEndState = false }) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.White)) {
-                    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button(onClick = { hangup(context, callingVM, localParticipantView) }) {
-                            Text(text = "Call end")
-                        }
-                    }
+fun participantsNotNull(
+    callingVM: CommunicationCallingViewModel,
+    participants: ArrayList<RemoteParticipant>,
+    gridLayout: GridLayout
+) {
+    context?.let {
+        Log.d("debug", "displayedParticipants: $participants")
+        val prevParticipantViewList = ArrayList<ParticipantView>()
+        prevParticipantViewList.addAll(participantViewList)
+        val preParticipantIdIndexPathMap = hashMapOf<String, Int>()
+        preParticipantIdIndexPathMap.putAll(participantIdIndexPathMap)
+        participantViewList.clear()
+        participantIdIndexPathMap.clear()
+
+        val displayedRemoteParticipants: ArrayList<RemoteParticipant> = participants
+
+        var indexForNewParticipantViewList = 0
+        for (i in displayedRemoteParticipants.indices) {
+            val remoteParticipant = displayedRemoteParticipants[i]
+            val participantState = remoteParticipant.state
+            if (ParticipantState.DISCONNECTED == participantState) {
+                continue
+            }
+            val id: String = callingVM.getId(remoteParticipant).toString()
+            var pv: ParticipantView?
+            if (preParticipantIdIndexPathMap.containsKey(id)) {
+                val prevIndex = preParticipantIdIndexPathMap[id]!!
+                pv = prevParticipantViewList[prevIndex]
+                val remoteVideoStream = getFirstVideoStream(remoteParticipant)
+                pv.setVideoStream(remoteVideoStream)
+            } else {
+                pv = ParticipantView(it).apply {
+                    this.setDisplayName(remoteParticipant.displayName)
+                    val remoteVideoStream = getFirstVideoStream(remoteParticipant)
+                    this.setVideoStream(remoteVideoStream)
                 }
             }
+            pv.let { view ->
+                view.setIsMuted(remoteParticipant.isMuted)
+                view.setIsSpeaking(remoteParticipant.isSpeaking)
+                // update the participantIdIndexPathMap, participantViewList and participantsRenderList
+                participantIdIndexPathMap[id] = indexForNewParticipantViewList++
+                participantViewList.add(view)
+            }
         }
+        for (id in preParticipantIdIndexPathMap.keys) {
+            if (participantIdIndexPathMap.containsKey(id)) {
+                continue
+            }
+            val discardedParticipantView: ParticipantView =
+                prevParticipantViewList[preParticipantIdIndexPathMap[id]!!]
+            discardedParticipantView.cleanUpVideoRendering()
+        }
+        gridLayout.post(Runnable {
+            if (prevParticipantViewList.size > 1 && participantViewList.size <= 1
+                || prevParticipantViewList.size <= 1 && participantViewList.size > 1
+            ) {
+                setupGridLayout(gridLayout)
+            }
+            //            updateGridLayoutViews(gridLayout)
+        })
     }
 }
 
@@ -318,7 +363,7 @@ private fun initParticipantViews(context: Context, callingVM: CommunicationCalli
     localParticipantView.setIsMuted(joinCallConfig.isMicrophoneMuted)
     localParticipantView.setVideoDisplayed(joinCallConfig.isCameraOn)
 
-    val localVideoStream = callingVM.getLocalVideoStream(context)
+    val localVideoStream = callingVM.getLocalVideoStream()
     localParticipantView.setVideoStream(localVideoStream)
 
     // finalize the view data
@@ -330,14 +375,13 @@ private fun initParticipantViews(context: Context, callingVM: CommunicationCalli
 //    gridLayout.post(Runnable { loadGridLayoutViews() })
 }
 
-private fun setupGridLayout(context: Context, gridLayout: GridLayout) {
+private fun setupGridLayout(gridLayout: GridLayout) {
     gridLayout.removeAllViews()
     if (participantViewList.size <= 1) {
         gridLayout.rowCount = 1
         gridLayout.columnCount = 1
         gridLayout.addView(
             createCellForGridLayout(
-                context,
                 gridLayout.measuredWidth,
                 gridLayout.measuredHeight
             )
@@ -348,7 +392,6 @@ private fun setupGridLayout(context: Context, gridLayout: GridLayout) {
         for (i in 0..3) {
             gridLayout.addView(
                 createCellForGridLayout(
-                    context,
                     gridLayout.measuredWidth / 2,
                     gridLayout.measuredHeight / 2
                 )
@@ -357,8 +400,8 @@ private fun setupGridLayout(context: Context, gridLayout: GridLayout) {
     }
 }
 
-private fun loadGridLayoutViews(context: Context, gridLayout: GridLayout) {
-    setupGridLayout(context, gridLayout)
+private fun loadGridLayoutViews(gridLayout: GridLayout) {
+    setupGridLayout(gridLayout)
     for (i in participantViewList.indices) {
         val participantView: ParticipantView = participantViewList[i]
         detachFromParentView(participantView)
@@ -374,7 +417,7 @@ private fun setLocalParticipantView(localParticipantView: ParticipantView, local
     localVideoViewContainer.bringToFront()
 }
 
-private fun openShareDialogue(context: Context, callingVM: CommunicationCallingViewModel) {
+private fun openShareDialogue(callingVM: CommunicationCallingViewModel) {
     Log.d("GroupCall", "Share button clicked!")
     val sendIntent = Intent()
     sendIntent.action = Intent.ACTION_SEND
@@ -382,16 +425,16 @@ private fun openShareDialogue(context: Context, callingVM: CommunicationCallingV
     sendIntent.putExtra(Intent.EXTRA_TITLE, "Group Call ID")
     sendIntent.type = "text/plain"
     val shareIntent = Intent.createChooser(sendIntent, null)
-    context.startActivity(shareIntent)
+    context?.startActivity(shareIntent)
 }
 
-private fun hangup(context: Context, callingVM: CommunicationCallingViewModel, localParticipantView: ParticipantView) {
+private fun hangup(callingVM: CommunicationCallingViewModel, localParticipantView: ParticipantView) {
     Log.d("GroupCall", "Hangup button clicked!")
     if (localParticipantView != null) {
         localParticipantView.cleanUpVideoRendering()
         detachFromParentView(localParticipantView)
     }
-    context.let{
+    context?.let {
         inCallServiceIntent?.let { intent ->
             it.stopService(intent)
         }
@@ -425,7 +468,7 @@ private fun appendLocalParticipantView(localParticipantView: ParticipantView, ca
     participantViewList.add(localParticipantView)
 }
 
-private fun createCellForGridLayout(context: Context, width: Int, height: Int): LinearLayout? {
+private fun createCellForGridLayout(width: Int, height: Int): LinearLayout? {
     context.let {
         val cell = LinearLayout(it)
         val params =
