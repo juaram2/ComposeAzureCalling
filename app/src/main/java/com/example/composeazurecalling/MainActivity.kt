@@ -1,16 +1,10 @@
 package com.example.composeazurecalling
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioManager
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -25,13 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
-import com.example.composeazurecalling.helper.AudioSessionManager
-import com.example.composeazurecalling.model.JoinCallType
-import com.example.composeazurecalling.ui.activity.CallSetupActivity
 import com.example.composeazurecalling.ui.theme.ComposeAzureCallingTheme
 import com.example.composeazurecalling.ui.view.Call
-import com.example.composeazurecalling.utils.ActivityLifecycleCallbacks
-import com.example.composeazurecalling.utils.PrefUtil
 import com.example.composeazurecalling.viewmodel.AuthenticationViewModel
 import com.example.composeazurecalling.viewmodel.CommunicationCallingViewModel
 import java.util.*
