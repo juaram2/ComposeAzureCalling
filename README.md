@@ -11,4 +11,7 @@
 
 ## Start call
 1. Intent JoinCallConfig
-2. 
+2. Initialize Call Notification
+3. Initialize Participants View
+4. set LocalVideoStream
+5. set RemoteVideoStream
