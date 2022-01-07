@@ -110,9 +110,9 @@ class CallScreenFragment : Fragment() {
         binding.callVideo.setOnClickListener {
             communicationCallingViewModel.cameraOn.value?.let{
                 if(!it) {
-                    communicationCallingViewModel.turnOnVideoAsync(this.requireContext())
+                    communicationCallingViewModel.turnOnVideoAsync()
                 } else {
-                    communicationCallingViewModel.turnOffVideoAsync(this.requireContext())
+                    communicationCallingViewModel.turnOffVideoAsync()
                 }
             }
         }
@@ -120,9 +120,9 @@ class CallScreenFragment : Fragment() {
         binding.callAudio.setOnClickListener {
             communicationCallingViewModel.micOn.value?.let {
                 if(!it) {
-                    communicationCallingViewModel.turnOnAudioAsync(this.requireContext())
+                    communicationCallingViewModel.turnOnAudioAsync()
                 } else {
-                    communicationCallingViewModel.turnOffAudioAsync(this.requireContext())
+                    communicationCallingViewModel.turnOffAudioAsync()
                 }
             }
         }
@@ -214,7 +214,7 @@ class CallScreenFragment : Fragment() {
             if(it != null) {
                 Log.d(LOG_TAG, "cameraOn : $it")
                 if(it) {
-                    localParticipantView.setVideoStream(communicationCallingViewModel.getLocalVideoStream(this.requireContext()))
+                    localParticipantView.setVideoStream(communicationCallingViewModel.getLocalVideoStream())
                     localParticipantView.setVideoDisplayed(it)
                     binding.yourCameraHolder.visibility = if (localParticipantViewGridIndex == null && !it) View.INVISIBLE else View.VISIBLE
                     videoImageButton.isSelected = true
@@ -317,13 +317,13 @@ class CallScreenFragment : Fragment() {
 
     override fun onStop() {
         Log.d(LOG_TAG, "onStop")
-        communicationCallingViewModel.pauseVideo(this.requireContext())
+        communicationCallingViewModel.pauseVideo()
         super.onStop()
     }
 
     override fun onResume() {
         Log.d(LOG_TAG, "onResume")
-        communicationCallingViewModel.resumeVideo(this.requireContext())
+        communicationCallingViewModel.resumeVideo()
         super.onResume()
     }
 
@@ -350,7 +350,7 @@ class CallScreenFragment : Fragment() {
         localParticipantView.setIsMuted(joinCallConfig?.isMicrophoneMuted ?: false)
         localParticipantView.setVideoDisplayed(joinCallConfig?.isCameraOn ?: false)
 
-        val localVideoStream = communicationCallingViewModel.getLocalVideoStream(this.requireContext())
+        val localVideoStream = communicationCallingViewModel.getLocalVideoStream()
         localParticipantView.setVideoStream(localVideoStream)
 
         // finalize the view data

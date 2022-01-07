@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
 
         getAllPermissions()
 
-        communicationCallingVM.setupCalling(this.applicationContext)
+        communicationCallingVM.setupCalling()
         CloudHospitalApp.instance?.createAudioSessionManager()
 
         setContent {
