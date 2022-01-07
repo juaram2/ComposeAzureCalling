@@ -163,123 +163,111 @@ fun GroupCall(
     }
 
     Column {
-        configuredChanged?.let {
-            Log.d("GroupCall", "configureChanged : $it")
+        ConstraintLayout {
+            val (grid, local, text, buttons) = createRefs()
 
-            ConstraintLayout {
-                val (grid, local, text, buttons) = createRefs()
+            // TODO: Camera grid
+            AndroidView(factory = { context ->
+                GridLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                }
+            }, modifier = Modifier.constrainAs(grid) {
+                top.linkTo(parent.top)
+            }, update = { gridLayout ->
+                if (callState == CallState.CONNECTED) {
+                    gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
+                }
 
-                // TODO: Camera grid
+                displayedParticipants?.let {
+                    participantsNotNull(callingVM, it, gridLayout)
+                }
+
+                configuredChanged?.let {
+                    Log.d("debug", "configure changed!")
+                    gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
+                }
+            })
+
+            // TODO: Local camera
+            if (isVideoChecked.value) {
                 AndroidView(factory = { context ->
-                    GridLayout(context).apply {
-                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    ConstraintLayout(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(300, 400)
                     }
-                }, modifier = Modifier.constrainAs(grid) {
-                    top.linkTo(parent.top, margin = 16.dp)
-                }, update = { gridLayout ->
+                }, modifier = Modifier.constrainAs(local) {
+                    top.linkTo(parent.top)
+                }, update = { layout ->
                     if (callState == CallState.CONNECTED) {
-                        gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
+                        initializeCallNotification()
+                        initParticipantViews(callingVM, joinCallConfig, localParticipantView, layout)
                     }
 
                     displayedParticipants?.let {
-                        participantsNotNull(callingVM, it, gridLayout)
+                        localParticipantsNotNull(localParticipantView, layout, isVideoChecked.value)
+                    }
+
+                    if (isVideoChecked.value) {
+                        setLocalParticipantView(localParticipantView, layout)
                     }
 
                     configuredChanged?.let {
-                        Log.d("debug", "configure changed!")
-                        gridLayout.post(Runnable { loadGridLayoutViews(gridLayout) })
-                    }
-                })
-
-                // TODO: Local camera
-                if (isVideoChecked.value) {
-                    AndroidView(factory = { context ->
-                        ConstraintLayout(context).apply {
-                            layoutParams = LinearLayout.LayoutParams(300, 400)
-                        }
-                    }, modifier = Modifier.constrainAs(local) {
-                        top.linkTo(parent.top, margin = 16.dp)
-                    }, update = { layout ->
-                        callState.let { state ->
-                            Log.d("GroupCall", "callState : $callState")
-                            if (state == CallState.CONNECTED) {
-                                initializeCallNotification(context)
-                                initParticipantViews(context, callingVM, joinCallConfig, localParticipantView, layout)
-                            }
-                        }
-
-                        layout.removeView(localParticipantView)
-
                         if (localParticipantViewGridIndex == null) {
                             setLocalParticipantView(localParticipantView, layout)
-                        }
-
-                        if (participantViewList.size == 1) {
-                            if (localParticipantViewGridIndex != null) {
-                                localParticipantViewGridIndex = null
-                            }
-                            detachFromParentView(localParticipantView)
-
-                            localParticipantView.setDisplayNameVisible(false)
-                            layout.addView(localParticipantView)
-                            layout.bringToFront()
                         } else {
-                            if (localParticipantViewGridIndex == null) {
-                                detachFromParentView(localParticipantView)
-                            }
-                            appendLocalParticipantView(localParticipantView, callingVM)
+                            val localVideoStream = callingVM.getLocalVideoStream()
+                            localParticipantView.setVideoStream(localVideoStream)
                         }
-                    })
+                    }
+                })
+            }
+
+            Text(text = "participants: $count",
+                modifier = Modifier.constrainAs(text) { top.linkTo(parent.top) })
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .constrainAs(buttons) { top.linkTo(parent.top) },
+                horizontalArrangement = Arrangement.SpaceAround)
+            {
+                IconButton(onClick = {
+                    isVideoChecked.value = !isVideoChecked.value
+
+                    if (isVideoChecked.value) {
+                        callingVM.turnOffVideoAsync()
+                    } else {
+                        callingVM.turnOnVideoAsync()
+                    }
+                }) {
+                    if (isVideoChecked.value) {
+                        Icon(imageVector = Icons.Default.Videocam, contentDescription = "video on")
+                    } else {
+                        Icon(imageVector = Icons.Default.VideocamOff, contentDescription = "video off")
+                    }
                 }
+                IconButton(onClick = {
+                    isMicChecked.value = !isMicChecked.value
 
-                Text(text = "participants: $count",
-                    modifier = Modifier.constrainAs(text) { top.linkTo(parent.top, margin = 16.dp) })
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .constrainAs(buttons) { top.linkTo(parent.top, margin = 16.dp) },
-                    horizontalArrangement = Arrangement.SpaceAround)
-                {
-                    IconButton(onClick = {
-                        isVideoChecked.value = !isVideoChecked.value
-
-                        if (isVideoChecked.value) {
-                            callingVM.turnOffVideoAsync()
-                        } else {
-                            callingVM.turnOnVideoAsync()
-                        }
-                    }) {
-                        if (isVideoChecked.value) {
-                            Icon(imageVector = Icons.Default.Videocam, contentDescription = "video on")
-                        } else {
-                            Icon(imageVector = Icons.Default.VideocamOff, contentDescription = "video off")
-                        }
+                    if (isMicChecked.value) {
+                        callingVM.turnOffAudioAsync()
+                    } else {
+                        callingVM.turnOnAudioAsync()
                     }
-                    IconButton(onClick = {
-                        isMicChecked.value = !isMicChecked.value
-
-                        if (isMicChecked.value) {
-                            callingVM.turnOffAudioAsync()
-                        } else {
-                            callingVM.turnOnAudioAsync()
-                        }
-                    }) {
-                        if (isMicChecked.value) {
-                            Icon(imageVector = Icons.Default.Mic, contentDescription = "mic on")
-                        } else {
-                            Icon(imageVector = Icons.Default.MicOff, contentDescription = "mic off")
-                        }
+                }) {
+                    if (isMicChecked.value) {
+                        Icon(imageVector = Icons.Default.Mic, contentDescription = "mic on")
+                    } else {
+                        Icon(imageVector = Icons.Default.MicOff, contentDescription = "mic off")
                     }
-                    IconButton(onClick = {
-                        inviteState = !inviteState
-                        openShareDialogue(callingVM)
-                    }) {
-                        Icon(imageVector = Icons.Default.GroupAdd, contentDescription = "person add")
-                    }
-                    IconButton(onClick = { hangup(callingVM, localParticipantView) }) {
-                        Icon(imageVector = Icons.Default.CallEnd, contentDescription = "call end", tint = Color.Red)
-                    }
+                }
+                IconButton(onClick = {
+                    inviteState = !inviteState
+                    openShareDialogue(callingVM)
+                }) {
+                    Icon(imageVector = Icons.Default.GroupAdd, contentDescription = "person add")
+                }
+                IconButton(onClick = { hangup(callingVM, localParticipantView) }) {
+                    Icon(imageVector = Icons.Default.CallEnd, contentDescription = "call end", tint = Color.Red)
                 }
             }
         }
@@ -350,14 +338,32 @@ fun participantsNotNull(
     }
 }
 
-private fun initializeCallNotification(context: Context) {
-    context.let{
+fun localParticipantsNotNull(
+    localParticipantView: ParticipantView,
+    layout: ConstraintLayout,
+    cameraOn: Boolean
+) {
+    if (participantViewList.size == 1) {
+        if (localParticipantViewGridIndex != null) {
+            localParticipantViewGridIndex = null
+        }
+        setLocalParticipantView(localParticipantView, layout)
+    } else {
+        if (localParticipantViewGridIndex == null) {
+            detachFromParentView(localParticipantView)
+        }
+        appendLocalParticipantView(localParticipantView, cameraOn)
+    }
+}
+
+private fun initializeCallNotification() {
+    context?.let{
         inCallServiceIntent = Intent(it, InCallService::class.java)
         it.startService(inCallServiceIntent)
     }
 }
 
-private fun initParticipantViews(context: Context, callingVM: CommunicationCallingViewModel, joinCallConfig: JoinCallConfig, localParticipantView: ParticipantView, layout: ConstraintLayout) {
+private fun initParticipantViews(callingVM: CommunicationCallingViewModel, joinCallConfig: JoinCallConfig, localParticipantView: ParticipantView, layout: ConstraintLayout) {
     // load local participant's view
     localParticipantView.setDisplayName(joinCallConfig.displayName + " (Me)")
     localParticipantView.setIsMuted(joinCallConfig.isMicrophoneMuted)
@@ -370,7 +376,7 @@ private fun initParticipantViews(context: Context, callingVM: CommunicationCalli
     if (participantViewList.size == 1) {
         setLocalParticipantView(localParticipantView, layout)
     } else {
-        appendLocalParticipantView(localParticipantView, callingVM)
+        appendLocalParticipantView(localParticipantView, joinCallConfig.isCameraOn)
     }
 //    gridLayout.post(Runnable { loadGridLayoutViews() })
 }
@@ -459,10 +465,10 @@ private fun getFirstVideoStream(remoteParticipant: RemoteParticipant): RemoteVid
 }
 
 
-private fun appendLocalParticipantView(localParticipantView: ParticipantView, callingVM: CommunicationCallingViewModel) {
+private fun appendLocalParticipantView(localParticipantView: ParticipantView, cameraOn: Boolean) {
     localParticipantViewGridIndex = participantViewList.size
     localParticipantView.setDisplayNameVisible(true)
-    callingVM.cameraOn.value?.let {
+    cameraOn?.let {
         localParticipantView.setVideoDisplayed(it)
     }
     participantViewList.add(localParticipantView)
