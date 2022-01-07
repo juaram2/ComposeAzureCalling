@@ -63,7 +63,7 @@ fun Call() {
             arguments = listOf(navArgument("joinCallConfig"){ type = CallConfigNavType() }
         )) {
             val joinCallConfig = requireNotNull(it.arguments).getSerializable("joinCallConfig") as JoinCallConfig
-            GroupCall(joinCallConfig, callingViewModel, groupCallVM, ParticipantView(context))
+            GroupCall(joinCallConfig, callingViewModel, groupCallVM)
         }
     }
 }
@@ -173,7 +173,7 @@ fun CallScreen(navController: NavHostController, callingVM: CommunicationCalling
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("9552222e-fd83-45f3-e335-08d9d181339c"),
+                    UUID.fromString("716ed460-d482-414b-e336-08d9d181339c"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",

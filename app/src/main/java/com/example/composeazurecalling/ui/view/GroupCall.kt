@@ -50,6 +50,7 @@ private var timer: Timer? = null
 private var localParticipantViewGridIndex: Int? = null
 private var participantIdIndexPathMap = HashMap<String, Int>()
 private var participantViewList = ArrayList<ParticipantView>()
+val localParticipantView = ParticipantView(context!!)
 
 @Volatile
 private var viewUpdatePending = false
@@ -68,17 +69,15 @@ fun Context.findActivity(): AppCompatActivity? = when (this) {
 fun GroupCall(
     joinCallConfig: JoinCallConfig,
     callingVM: CommunicationCallingViewModel,
-    groupCallVM: CallScreenViewModel,
-    localParticipantView: ParticipantView
+    groupCallVM: CallScreenViewModel
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val activity = context?.findActivity()
+    val activity = context.findActivity()
 
     val isVideoChecked = remember { mutableStateOf(joinCallConfig.isCameraOn) }
     val isMicChecked = remember { mutableStateOf(!joinCallConfig.isMicrophoneMuted) }
     var inviteState by remember { mutableStateOf(false) }
-    var callEndState by remember { mutableStateOf(false) }
 
     val displayedParticipants = callingVM.displayedParticipantsLiveData.observeAsState().value
     val configuredChanged = groupCallVM.configureChanged.observeAsState().value
@@ -199,20 +198,20 @@ fun GroupCall(
                 }, update = { layout ->
                     if (callState == CallState.CONNECTED) {
                         initializeCallNotification()
-                        initParticipantViews(callingVM, joinCallConfig, localParticipantView, layout)
+                        initParticipantViews(callingVM, joinCallConfig, layout)
                     }
 
                     displayedParticipants?.let {
-                        localParticipantsNotNull(localParticipantView, layout, isVideoChecked.value)
+                        localParticipantsNotNull(layout, isVideoChecked.value)
                     }
 
                     if (isVideoChecked.value) {
-                        setLocalParticipantView(localParticipantView, layout)
+                        setLocalParticipantView(layout)
                     }
 
                     configuredChanged?.let {
                         if (localParticipantViewGridIndex == null) {
-                            setLocalParticipantView(localParticipantView, layout)
+                            setLocalParticipantView(layout)
                         } else {
                             val localVideoStream = callingVM.getLocalVideoStream()
                             localParticipantView.setVideoStream(localVideoStream)
@@ -266,7 +265,7 @@ fun GroupCall(
                 }) {
                     Icon(imageVector = Icons.Default.GroupAdd, contentDescription = "person add")
                 }
-                IconButton(onClick = { hangup(callingVM, localParticipantView) }) {
+                IconButton(onClick = { hangup(callingVM) }) {
                     Icon(imageVector = Icons.Default.CallEnd, contentDescription = "call end", tint = Color.Red)
                 }
             }
@@ -339,7 +338,6 @@ fun participantsNotNull(
 }
 
 fun localParticipantsNotNull(
-    localParticipantView: ParticipantView,
     layout: ConstraintLayout,
     cameraOn: Boolean
 ) {
@@ -347,12 +345,12 @@ fun localParticipantsNotNull(
         if (localParticipantViewGridIndex != null) {
             localParticipantViewGridIndex = null
         }
-        setLocalParticipantView(localParticipantView, layout)
+        setLocalParticipantView(layout)
     } else {
         if (localParticipantViewGridIndex == null) {
             detachFromParentView(localParticipantView)
         }
-        appendLocalParticipantView(localParticipantView, cameraOn)
+        appendLocalParticipantView(cameraOn)
     }
 }
 
@@ -363,7 +361,7 @@ private fun initializeCallNotification() {
     }
 }
 
-private fun initParticipantViews(callingVM: CommunicationCallingViewModel, joinCallConfig: JoinCallConfig, localParticipantView: ParticipantView, layout: ConstraintLayout) {
+private fun initParticipantViews(callingVM: CommunicationCallingViewModel, joinCallConfig: JoinCallConfig, layout: ConstraintLayout) {
     // load local participant's view
     localParticipantView.setDisplayName(joinCallConfig.displayName + " (Me)")
     localParticipantView.setIsMuted(joinCallConfig.isMicrophoneMuted)
@@ -374,9 +372,9 @@ private fun initParticipantViews(callingVM: CommunicationCallingViewModel, joinC
 
     // finalize the view data
     if (participantViewList.size == 1) {
-        setLocalParticipantView(localParticipantView, layout)
+        setLocalParticipantView(layout)
     } else {
-        appendLocalParticipantView(localParticipantView, joinCallConfig.isCameraOn)
+        appendLocalParticipantView(joinCallConfig.isCameraOn)
     }
 //    gridLayout.post(Runnable { loadGridLayoutViews() })
 }
@@ -415,7 +413,7 @@ private fun loadGridLayoutViews(gridLayout: GridLayout) {
     }
 }
 
-private fun setLocalParticipantView(localParticipantView: ParticipantView, localVideoViewContainer: ConstraintLayout) {
+private fun setLocalParticipantView(localVideoViewContainer: ConstraintLayout) {
     Log.d("LOG_TAG", "setLocalParticipantView")
     detachFromParentView(localParticipantView)
     localParticipantView.setDisplayNameVisible(false)
@@ -434,7 +432,7 @@ private fun openShareDialogue(callingVM: CommunicationCallingViewModel) {
     context?.startActivity(shareIntent)
 }
 
-private fun hangup(callingVM: CommunicationCallingViewModel, localParticipantView: ParticipantView) {
+private fun hangup(callingVM: CommunicationCallingViewModel) {
     Log.d("GroupCall", "Hangup button clicked!")
     if (localParticipantView != null) {
         localParticipantView.cleanUpVideoRendering()
@@ -465,10 +463,10 @@ private fun getFirstVideoStream(remoteParticipant: RemoteParticipant): RemoteVid
 }
 
 
-private fun appendLocalParticipantView(localParticipantView: ParticipantView, cameraOn: Boolean) {
+private fun appendLocalParticipantView(cameraOn: Boolean) {
     localParticipantViewGridIndex = participantViewList.size
     localParticipantView.setDisplayNameVisible(true)
-    cameraOn?.let {
+    cameraOn.let {
         localParticipantView.setVideoDisplayed(it)
     }
     participantViewList.add(localParticipantView)
