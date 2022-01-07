@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.azure.android.communication.calling.*
 import com.azure.android.communication.common.*
+import com.example.composeazurecalling.CloudHospitalApp.Companion.context
 import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.service.TokenService
 import com.example.composeazurecalling.utils.Constants
@@ -76,17 +77,17 @@ class CommunicationCallingViewModel: ViewModel(),
     //endregion
 
     //region Public Methods
-    fun setupCalling(context: Context) {
+    fun setupCalling() {
         _callClient = CallClient()
-        setupDeviceManager(context)
+        setupDeviceManager()
     }
 
-    fun getLocalVideoStream(context: Context): LocalVideoStream?  {
+    fun getLocalVideoStream(): LocalVideoStream?  {
         Log.d(LOG_TAG, "getLocalVideoStream")
         if (_localVideoStream == null) {
             _initialCamera?.let {
                 Log.d(LOG_TAG, "_initialCamera: ${it.id}")
-                return initializeLocalVideoStream(it, context)
+                return initializeLocalVideoStream(it)
             } ?: run {
                 Log.d(LOG_TAG, "Camera is not initialized yet!")
                 return null
@@ -119,11 +120,11 @@ class CommunicationCallingViewModel: ViewModel(),
 
                     if (joinCallConfig.isCameraOn) {
                         val localVideoStreams = arrayOfNulls<LocalVideoStream>(1)
-                        localVideoStreams[0] = getLocalVideoStream(context)
+                        localVideoStreams[0] = getLocalVideoStream()
                         var videoOptions = VideoOptions(localVideoStreams)
-                        callWithOptions(context, agent, audioOptions, videoOptions, callLocator)
+                        callWithOptions(agent, audioOptions, videoOptions, callLocator)
                     } else {
-                        callWithOptions(context, agent, audioOptions, null, callLocator)
+                        callWithOptions(agent, audioOptions, null, callLocator)
                     }
                 }
             }
@@ -133,11 +134,11 @@ class CommunicationCallingViewModel: ViewModel(),
         return _joinId
     }
 
-    fun turnOnVideoAsync(_context: Context) {
+    fun turnOnVideoAsync() {
         Log.d(LOG_TAG, "turnOnVideoAsync")
         _call?.let { call ->
-            getLocalVideoStream(_context)?.let {
-                call.startVideo(_context,  it).thenApply {
+            getLocalVideoStream()?.let {
+                call.startVideo(context, it).thenApply {
                     _cameraOn.postValue(true)
                     _isVideoOnHold.postValue(false)
                 }
@@ -145,11 +146,11 @@ class CommunicationCallingViewModel: ViewModel(),
         }
     }
 
-    fun turnOffVideoAsync(_context: Context) {
+    fun turnOffVideoAsync() {
         Log.d(LOG_TAG, "turnOffVideoAsync")
         _call?.let { call ->
-            getLocalVideoStream(_context)?.let {
-                call.stopVideo(_context, it).thenRun {
+            getLocalVideoStream()?.let {
+                call.stopVideo(context, it).thenRun {
                     _cameraOn.postValue(false)
                     _isVideoOnHold.postValue(true)
                 }
@@ -157,38 +158,38 @@ class CommunicationCallingViewModel: ViewModel(),
         }
     }
 
-    fun turnOnAudioAsync(_context: Context) {
+    fun turnOnAudioAsync() {
         Log.d(LOG_TAG, "turnOnAudioAsync")
         _call?.let{ call ->
-            call.unmute(_context).thenRun{
+            call.unmute(context).thenRun{
                 _micOn.postValue(true)
             }
         }
     }
 
-    fun turnOffAudioAsync(_context: Context) {
+    fun turnOffAudioAsync() {
         Log.d(LOG_TAG, "turnOffAudioAsync")
         _call?.let { call ->
-            call.mute(_context).thenRun{
+            call.mute(context).thenRun{
                 _micOn.postValue(false)
             }
         }
     }
 
-    fun pauseVideo(context: Context) {
+    fun pauseVideo() {
         Log.d(LOG_TAG, "pauseVideo")
         _call?.let { call ->
             if (cameraOn.value!!) {
-                turnOffVideoAsync(context)
+                turnOffVideoAsync()
             }
         }
     }
 
-    fun resumeVideo(context: Context) {
+    fun resumeVideo() {
         Log.d(LOG_TAG, "resumeVideo")
         _call?.let { call ->
             if (isVideoOnHold.value!!) {
-                turnOnVideoAsync(context)
+                turnOnVideoAsync()
             }
         }
     }
@@ -220,9 +221,9 @@ class CommunicationCallingViewModel: ViewModel(),
     //endregion
 
     //region Private Methods
-    private fun setupDeviceManager(_context: Context) {
+    private fun setupDeviceManager() {
         _callClient?.let { callClient ->
-            callClient.getDeviceManager(_context)
+            callClient.getDeviceManager(context)
                 .thenAccept(Consumer { deviceManager ->
                     Log.d(LOG_TAG, "Device Manager created")
                     _deviceManager = deviceManager
@@ -288,8 +289,8 @@ class CommunicationCallingViewModel: ViewModel(),
         return _availableCameras.get(CameraFacing.BACK)
     }
 
-    private fun initializeLocalVideoStream(camera: VideoDeviceInfo, _context: Context): LocalVideoStream{
-        return LocalVideoStream(camera, _context)
+    private fun initializeLocalVideoStream(camera: VideoDeviceInfo): LocalVideoStream{
+        return LocalVideoStream(camera, context)
     }
 
     private fun createCallAgentAsync(displayName: String?, _context: Context): CompletableFuture<CallAgent>? {
@@ -314,7 +315,6 @@ class CommunicationCallingViewModel: ViewModel(),
     }
 
     private fun callWithOptions(
-        _context: Context,
         callAgent: CallAgent,
         audioOptions: AudioOptions,
         videoOptions: VideoOptions?,
@@ -324,7 +324,7 @@ class CommunicationCallingViewModel: ViewModel(),
         joinCallOptions.videoOptions = videoOptions
         joinCallOptions.audioOptions = audioOptions
 
-        _call = callAgent.join(_context, groupCallLocator, joinCallOptions)
+        _call = callAgent.join(context, groupCallLocator, joinCallOptions)
         _call?.let { call ->
             call.addOnStateChangedListener(this)
             call.addOnRemoteParticipantsUpdatedListener(this)

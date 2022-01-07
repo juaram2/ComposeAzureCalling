@@ -29,6 +29,7 @@ import com.azure.android.communication.calling.CreateViewOptions
 import com.azure.android.communication.calling.ScalingMode
 import com.azure.android.communication.calling.VideoStreamRenderer
 import com.azure.android.communication.calling.VideoStreamRendererView
+import com.example.composeazurecalling.CloudHospitalApp.Companion.context
 import com.example.composeazurecalling.model.JoinCallConfig
 import com.example.composeazurecalling.model.JoinCallType
 import com.example.composeazurecalling.utils.CallConfigNavType
@@ -69,7 +70,7 @@ fun Call() {
 
 @Composable
 fun CallScreen(navController: NavHostController) {
-    val context = LocalContext.current
+//    val context = LocalContext.current
 
     val callingVM: CommunicationCallingViewModel = viewModel()
     val callSetupVM: CallSetupViewModel = viewModel()
@@ -118,7 +119,7 @@ fun CallScreen(navController: NavHostController) {
     }, update = { layout ->
         if (isVideoChecked) {
             Log.d("debug", "isVideoChecked true")
-            val localVideoStream = callingVM.getLocalVideoStream(context)
+            val localVideoStream = callingVM.getLocalVideoStream()
             rendererView = VideoStreamRenderer(localVideoStream, context)
             rendererView?.let {
                 previewVideo = it.createView(CreateViewOptions(ScalingMode.CROP))
@@ -157,7 +158,7 @@ fun CallScreen(navController: NavHostController) {
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("0a9a2cc0-8452-47ce-72ed-08d9c9ca48a7"),
+                    UUID.fromString("c9c3c31a-b185-4c5c-e334-08d9d181339c"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",
