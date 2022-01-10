@@ -75,15 +75,24 @@ fun GroupCall(
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = context.findActivity()
 
-    val isVideoChecked = remember { mutableStateOf(joinCallConfig.isCameraOn) }
-    val isMicChecked = remember { mutableStateOf(!joinCallConfig.isMicrophoneMuted) }
+    if (joinCallConfig.isCameraOn) {
+        callingVM.turnOnVideoAsync()
+    } else {
+        callingVM.turnOffVideoAsync()
+    }
+
+    if (!joinCallConfig.isMicrophoneMuted) {
+        callingVM.turnOnAudioAsync()
+    } else {
+        callingVM.turnOffAudioAsync()
+    }
     var inviteState by remember { mutableStateOf(false) }
+    val cameraOn = remember { mutableStateOf(joinCallConfig.isCameraOn) }
+    val micOn = remember { mutableStateOf(!joinCallConfig.isMicrophoneMuted) }
 
     val displayedParticipants = callingVM.displayedParticipantsLiveData.observeAsState().value
     val configuredChanged = groupCallVM.configureChanged.observeAsState().value
     val callState = callingVM.callState.observeAsState().value
-    val cameraOn = callingVM.cameraOn.observeAsState().value
-    val micOn = callingVM.micOn.observeAsState().value
     val count = callingVM._call?.remoteParticipants?.size
 
     LaunchedEffect(Unit) {
@@ -94,18 +103,6 @@ fun GroupCall(
         callingVM.joinCall(joinCallConfig)
 
         groupCallVM.setConfigureChanged(true)
-
-        if (!joinCallConfig.isMicrophoneMuted) {
-            callingVM.turnOnAudioAsync()
-        } else {
-            callingVM.turnOffAudioAsync()
-        }
-
-        if (joinCallConfig.isCameraOn) {
-            callingVM.turnOnVideoAsync()
-        } else {
-            callingVM.turnOffVideoAsync()
-        }
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -131,31 +128,31 @@ fun GroupCall(
         }
     }
 
-    displayedParticipants.let {
-        handler.post(Runnable {
-            if (!viewUpdatePending) {
-                viewUpdatePending = true
-                val now = System.currentTimeMillis()
-                val timeElapsed: Long = now - lastViewUpdateTimestamp
-                handler.postDelayed({
-                    groupCallVM.setConfigureChanged(true)
-                    lastViewUpdateTimestamp = System.currentTimeMillis()
-                    viewUpdatePending = false
-                }, (MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES - timeElapsed).coerceAtLeast(0))
-            }
-        })
-    }
+//    displayedParticipants.let {
+//        handler.post(Runnable {
+//            if (!viewUpdatePending) {
+//                viewUpdatePending = true
+//                val now = System.currentTimeMillis()
+//                val timeElapsed: Long = now - lastViewUpdateTimestamp
+//                handler.postDelayed({
+//                    groupCallVM.setConfigureChanged(true)
+//                    lastViewUpdateTimestamp = System.currentTimeMillis()
+//                    viewUpdatePending = false
+//                }, (MIN_TIME_BETWEEN_PARTICIPANT_VIEW_UPDATES - timeElapsed).coerceAtLeast(0))
+//            }
+//        })
+//    }
 
-    if(cameraOn == true) {
+    if(cameraOn.value) {
         val localStream = callingVM.getLocalVideoStream()
         localParticipantView.setVideoStream(localStream)
-        localParticipantView.setVideoDisplayed(cameraOn)
+        localParticipantView.setVideoDisplayed(cameraOn.value)
     } else {
         localParticipantView.setVideoStream(null as LocalVideoStream?)
         localParticipantView.setVideoDisplayed(false)
     }
 
-    if (micOn == true) { // 마이크가 켜져 있다면
+    if (micOn.value) { // 마이크가 켜져 있다면
         localParticipantView.setIsMuted(false)
     } else { // 마이크가 꺼져 있다
         localParticipantView.setIsMuted(true)
@@ -164,7 +161,6 @@ fun GroupCall(
     Column {
         ConstraintLayout {
             val (grid, local, text, buttons) = createRefs()
-
             // TODO: Camera grid
             AndroidView(factory = { context ->
                 GridLayout(context).apply {
@@ -178,7 +174,7 @@ fun GroupCall(
                 }
 
                 displayedParticipants?.let {
-                    participantsNotNull(callingVM, it, gridLayout)
+                    setRemoteView(callingVM, it, gridLayout)
                 }
 
                 configuredChanged?.let {
@@ -188,37 +184,22 @@ fun GroupCall(
             })
 
             // TODO: Local camera
-            if (isVideoChecked.value) {
-                AndroidView(factory = { context ->
-                    ConstraintLayout(context).apply {
-                        layoutParams = LinearLayout.LayoutParams(300, 400)
-                    }
-                }, modifier = Modifier.constrainAs(local) {
-                    top.linkTo(parent.top)
-                }, update = { layout ->
-                    if (callState == CallState.CONNECTED) {
-                        initializeCallNotification()
-                        initParticipantViews(callingVM, joinCallConfig, layout)
-                    }
+            AndroidView(factory = { context ->
+                ConstraintLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(300, 400)
+                }
+            }, modifier = Modifier.constrainAs(local) {
+                top.linkTo(parent.top)
+            }, update = { layout ->
+                if (callState == CallState.CONNECTED) {
+                    initializeCallNotification()
+                    initParticipantViews(callingVM, joinCallConfig, layout)
+                }
 
-                    displayedParticipants?.let {
-                        localParticipantsNotNull(layout, isVideoChecked.value)
-                    }
-
-                    if (isVideoChecked.value) {
-                        setLocalParticipantView(layout)
-                    }
-
-                    configuredChanged?.let {
-                        if (localParticipantViewGridIndex == null) {
-                            setLocalParticipantView(layout)
-                        } else {
-                            val localVideoStream = callingVM.getLocalVideoStream()
-                            localParticipantView.setVideoStream(localVideoStream)
-                        }
-                    }
-                })
-            }
+                displayedParticipants?.let {
+                    setLocalView(layout, cameraOn.value)
+                }
+            })
 
             Text(text = "participants: $count",
                 modifier = Modifier.constrainAs(text) { top.linkTo(parent.top) })
@@ -230,30 +211,28 @@ fun GroupCall(
                 horizontalArrangement = Arrangement.SpaceAround)
             {
                 IconButton(onClick = {
-                    isVideoChecked.value = !isVideoChecked.value
-
-                    if (isVideoChecked.value) {
+                    cameraOn.value = !cameraOn.value
+                    if (cameraOn.value) {
                         callingVM.turnOffVideoAsync()
                     } else {
                         callingVM.turnOnVideoAsync()
                     }
                 }) {
-                    if (isVideoChecked.value) {
+                    if (cameraOn.value) {
                         Icon(imageVector = Icons.Default.Videocam, contentDescription = "video on")
                     } else {
                         Icon(imageVector = Icons.Default.VideocamOff, contentDescription = "video off")
                     }
                 }
                 IconButton(onClick = {
-                    isMicChecked.value = !isMicChecked.value
-
-                    if (isMicChecked.value) {
+                    micOn.value = !micOn.value
+                    if (micOn.value) {
                         callingVM.turnOffAudioAsync()
                     } else {
                         callingVM.turnOnAudioAsync()
                     }
                 }) {
-                    if (isMicChecked.value) {
+                    if (micOn.value) {
                         Icon(imageVector = Icons.Default.Mic, contentDescription = "mic on")
                     } else {
                         Icon(imageVector = Icons.Default.MicOff, contentDescription = "mic off")
@@ -273,7 +252,7 @@ fun GroupCall(
     }
 }
 
-fun participantsNotNull(
+fun setRemoteView(
     callingVM: CommunicationCallingViewModel,
     participants: ArrayList<RemoteParticipant>,
     gridLayout: GridLayout
@@ -332,12 +311,11 @@ fun participantsNotNull(
             ) {
                 setupGridLayout(gridLayout)
             }
-            //            updateGridLayoutViews(gridLayout)
         })
     }
 }
 
-fun localParticipantsNotNull(
+fun setLocalView(
     layout: ConstraintLayout,
     cameraOn: Boolean
 ) {
@@ -376,7 +354,6 @@ private fun initParticipantViews(callingVM: CommunicationCallingViewModel, joinC
     } else {
         appendLocalParticipantView(joinCallConfig.isCameraOn)
     }
-//    gridLayout.post(Runnable { loadGridLayoutViews() })
 }
 
 private fun setupGridLayout(gridLayout: GridLayout) {
@@ -443,11 +420,7 @@ private fun hangup(callingVM: CommunicationCallingViewModel) {
             it.stopService(intent)
         }
     }
-
-//    callHangupConfirmButton.isEnabled = false
     callingVM.hangupAsync()
-
-//    findNavController().popBackStack()
 }
 
 private fun detachFromParentView(view: View?) {

@@ -53,15 +53,6 @@ class CommunicationCallingViewModel: ViewModel(),
     private val _incomingCall = MutableLiveData<IncomingCall?>()
     val incomingCall: MutableLiveData<IncomingCall?> = _incomingCall
 
-    private val _isVideoOnHold = MutableLiveData<Boolean>(false)
-    val isVideoOnHold: LiveData<Boolean> = _isVideoOnHold
-
-    private val _cameraOn = MutableLiveData<Boolean>(false)
-    var cameraOn: LiveData<Boolean> = _cameraOn
-
-    private val _micOn = MutableLiveData<Boolean>(true)
-    var micOn: LiveData<Boolean> = _micOn
-
     private var _remoteParticipantsMap = java.util.HashMap<String, RemoteParticipant>()
     private var _displayedRemoteParticipants = ArrayList<RemoteParticipant>()
 
@@ -138,10 +129,7 @@ class CommunicationCallingViewModel: ViewModel(),
         Log.d(LOG_TAG, "turnOnVideoAsync")
         _call?.let { call ->
             getLocalVideoStream()?.let {
-                call.startVideo(context, it).thenApply {
-                    _cameraOn.postValue(true)
-                    _isVideoOnHold.postValue(false)
-                }
+                call.startVideo(context, it)
             }
         }
     }
@@ -150,10 +138,7 @@ class CommunicationCallingViewModel: ViewModel(),
         Log.d(LOG_TAG, "turnOffVideoAsync")
         _call?.let { call ->
             getLocalVideoStream()?.let {
-                call.stopVideo(context, it).thenRun {
-                    _cameraOn.postValue(false)
-                    _isVideoOnHold.postValue(true)
-                }
+                call.stopVideo(context, it)
             }
         }
     }
@@ -161,36 +146,28 @@ class CommunicationCallingViewModel: ViewModel(),
     fun turnOnAudioAsync() {
         Log.d(LOG_TAG, "turnOnAudioAsync")
         _call?.let{ call ->
-            call.unmute(context).thenRun{
-                _micOn.postValue(true)
-            }
+            call.unmute(context)
         }
     }
 
     fun turnOffAudioAsync() {
         Log.d(LOG_TAG, "turnOffAudioAsync")
         _call?.let { call ->
-            call.mute(context).thenRun{
-                _micOn.postValue(false)
-            }
+            call.mute(context)
         }
     }
 
     fun pauseVideo() {
         Log.d(LOG_TAG, "pauseVideo")
         _call?.let { call ->
-            if (cameraOn.value!!) {
-                turnOffVideoAsync()
-            }
+            turnOffVideoAsync()
         }
     }
 
     fun resumeVideo() {
         Log.d(LOG_TAG, "resumeVideo")
         _call?.let { call ->
-            if (isVideoOnHold.value!!) {
-                turnOnVideoAsync()
-            }
+            turnOnVideoAsync()
         }
     }
 
@@ -328,9 +305,6 @@ class CommunicationCallingViewModel: ViewModel(),
         _call?.let { call ->
             call.addOnStateChangedListener(this)
             call.addOnRemoteParticipantsUpdatedListener(this)
-
-            _micOn.postValue(!audioOptions.isMuted)
-            _cameraOn.postValue(videoOptions != null)
         }
     }
 

@@ -6,18 +6,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import com.example.composeazurecalling.ui.theme.ComposeAzureCallingTheme
 import com.example.composeazurecalling.ui.view.Call
@@ -74,33 +64,5 @@ class MainActivity : ComponentActivity() {
         if (permissionsToAskFor.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, permissionsToAskFor.toTypedArray(), 1)
         }
-    }
-}
-
-@Composable
-fun Main() {
-    val context = LocalContext.current
-
-    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-        TextButton(
-            onClick = {
-//                context.startActivity(Intent(context, CallSetupActivity::class.java))
-//                val intent = Intent(context, CallSetupActivity::class.java)
-//                intent.putExtra("callType", JoinCallType.GROUP_CALL)
-//                intent.putExtra("joinId", "29858349-bbd5-4c0d-067e-08d9c5d76708")
-//                callLauncher.launch(intent)
-            },
-            modifier = Modifier.align(alignment = Alignment.CenterVertically)
-        ) {
-            Text("Call")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ComposeAzureCallingTheme {
-        Main()
     }
 }
