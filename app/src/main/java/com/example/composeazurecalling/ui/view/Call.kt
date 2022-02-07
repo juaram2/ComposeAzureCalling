@@ -46,7 +46,6 @@ import java.util.*
 fun Call() {
     val navController = rememberNavController()
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
 
     val callingViewModel: CommunicationCallingViewModel = viewModel()
     val groupCallVM: CallScreenViewModel = viewModel()
@@ -173,7 +172,7 @@ fun CallScreen(navController: NavHostController, callingVM: CommunicationCalling
 
             ifLet(isMicChecked, isVideoChecked) { (isMicChecked, isVideoChecked) ->
                 val joinCallConfig = JoinCallConfig(
-                    UUID.fromString("716ed460-d482-414b-e336-08d9d181339c"),
+                    UUID.fromString("298905a0-99d7-4213-ce6d-08d9e6c2d42e"),
                     !isMicChecked,
                     isVideoChecked,
                     displayName ?: "aram",

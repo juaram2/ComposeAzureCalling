@@ -147,6 +147,7 @@ dependencies {
 
     // auzre_communications
     implementation "com.azure.android:azure-communication-calling:1.1.0"
+    implementation "com.azure.android:azure-communication-ui:+"
 
     // CH-API-CLIENT
     implementation "com.github.icloudhospital:ch-api-client-kotlin:1.4.5"
